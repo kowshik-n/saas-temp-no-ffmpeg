@@ -46,6 +46,10 @@ interface SubtitleEditorProps {
   fileInputRef: React.RefObject<HTMLInputElement>;
   isPro: boolean;
   onJumpToTimestamp: (timestamp: string) => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 export default function SubtitleEditor({
@@ -65,6 +69,10 @@ export default function SubtitleEditor({
   fileInputRef,
   isPro,
   onJumpToTimestamp,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
 }: SubtitleEditorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredSubtitles, setFilteredSubtitles] = useState(subtitles);
@@ -159,6 +167,12 @@ export default function SubtitleEditor({
                   <Download className="h-4 w-4" />
                   Export SRT
                 </Button>
+                <UndoRedoButtons
+                  canUndo={canUndo}
+                  canRedo={canRedo}
+                  onUndo={onUndo}
+                  onRedo={onRedo}
+                />
                 <ShortcutsHelp isPro={isPro} />
               </>
             )}

@@ -32,6 +32,10 @@ interface EditorWorkspaceProps {
   onDownloadSRT: () => void;
   onReset: () => void;
   setWordsPerSubtitle: (value: number) => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 export function EditorWorkspace({
@@ -56,6 +60,10 @@ export function EditorWorkspace({
   onDownloadSRT,
   onReset,
   setWordsPerSubtitle,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
 }: EditorWorkspaceProps) {
   // Function to jump to a specific timestamp in the video
   const handleJumpToTimestamp = (timestamp: string) => {
@@ -128,6 +136,10 @@ export function EditorWorkspace({
                 fileInputRef={fileInputRef}
                 isPro={isPro}
                 onJumpToTimestamp={handleJumpToTimestamp}
+                onUndo={onUndo}
+                onRedo={onRedo}
+                canUndo={canUndo}
+                canRedo={canRedo}
               />
             </Suspense>
           </div>

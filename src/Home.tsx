@@ -38,6 +38,10 @@ function Home() {
     handleReset,
     handleSplitAllSubtitles,
     setWordsPerSubtitle,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   } = useSubtitles(isPro);
 
   // Handle time updates from video player
@@ -93,6 +97,10 @@ function Home() {
             onDownloadSRT={downloadSRT}
             onReset={handleReset}
             setWordsPerSubtitle={setWordsPerSubtitle}
+            onUndo={undo}
+            onRedo={redo}
+            canUndo={canUndo}
+            canRedo={canRedo}
           />
         )}
       </main>
