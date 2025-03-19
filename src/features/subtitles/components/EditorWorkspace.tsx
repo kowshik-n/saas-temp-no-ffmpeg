@@ -20,7 +20,7 @@ interface EditorWorkspaceProps {
   isPro: boolean;
   fileInputRef: React.RefObject<HTMLInputElement>;
   videoRef: React.RefObject<HTMLVideoElement>;
-  subtitleContainerRef: React.RefObject<HTMLDivElement>;
+
   onTimeUpdate: (time: number) => void;
   onImportSRT: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onUpdateSubtitle: (id: number, field: keyof Subtitle, value: string) => void;
@@ -32,6 +32,10 @@ interface EditorWorkspaceProps {
   onDownloadSRT: () => void;
   onReset: () => void;
   setWordsPerSubtitle: (value: number) => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 export function EditorWorkspace({
@@ -56,7 +60,28 @@ export function EditorWorkspace({
   onDownloadSRT,
   onReset,
   setWordsPerSubtitle,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
 }: EditorWorkspaceProps) {
+  // Function to jump to a specific timestamp in the video
+  const handleJumpToTimestamp = (timestamp: string) => {
+    if (videoRef.current && timestamp) {
+      // Convert timestamp format (00:00:00,000) to seconds
+      const parts = timestamp.split(":");
+      const seconds =
+        parts.length >= 3
+          ? parseInt(parts[0]) * 3600 +
+            parseInt(parts[1]) * 60 +
+            parseFloat(parts[2].replace(",", "."))
+          : 0;
+
+      videoRef.current.currentTime = seconds;
+      onTimeUpdate(seconds);
+    }
+  };
+
   return (
     <div className="rounded-xl overflow-hidden border bg-card shadow-lg">
       <ResizablePanelGroup direction="horizontal">
@@ -110,6 +135,11 @@ export function EditorWorkspace({
                 setWordsPerSubtitle={setWordsPerSubtitle}
                 fileInputRef={fileInputRef}
                 isPro={isPro}
+                onJumpToTimestamp={handleJumpToTimestamp}
+                onUndo={onUndo}
+                onRedo={onRedo}
+                canUndo={canUndo}
+                canRedo={canRedo}
               />
             </Suspense>
           </div>

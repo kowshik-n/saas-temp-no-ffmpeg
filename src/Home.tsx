@@ -5,6 +5,7 @@ import {
   useVideoUpload,
   useSubtitles,
 } from "@/features/subtitles";
+import { useKeyboardShortcuts } from "@/features/subtitles/hooks/useKeyboardShortcuts";
 
 function Home() {
   // State for pro mode toggle
@@ -25,7 +26,7 @@ function Home() {
     subtitles,
     currentSubtitleId,
     wordsPerSubtitle,
-    subtitleContainerRef,
+
     handleImportSRT,
     updateSubtitle,
     deleteSubtitle,
@@ -37,6 +38,10 @@ function Home() {
     handleReset,
     handleSplitAllSubtitles,
     setWordsPerSubtitle,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   } = useSubtitles(isPro);
 
   // Handle time updates from video player
@@ -44,6 +49,19 @@ function Home() {
     setCurrentTime(time);
     handleTimeUpdate(time);
   };
+
+  // Setup keyboard shortcuts
+  useKeyboardShortcuts({
+    videoRef,
+    subtitles,
+    currentSubtitleId,
+    onAddSubtitle: addNewSubtitle,
+    onSplitSubtitle: splitSubtitle,
+    onMergeSubtitle: mergeSubtitles,
+    onDeleteSubtitle: deleteSubtitle,
+    onDownloadSRT: downloadSRT,
+    isPro,
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -67,7 +85,6 @@ function Home() {
             isPro={isPro}
             fileInputRef={fileInputRef}
             videoRef={videoRef}
-            subtitleContainerRef={subtitleContainerRef}
             onTimeUpdate={onTimeUpdate}
             onImportSRT={handleImportSRT}
             onUpdateSubtitle={updateSubtitle}
@@ -79,6 +96,10 @@ function Home() {
             onDownloadSRT={downloadSRT}
             onReset={handleReset}
             setWordsPerSubtitle={setWordsPerSubtitle}
+            onUndo={undo}
+            onRedo={redo}
+            canUndo={canUndo}
+            canRedo={canRedo}
           />
         )}
       </main>

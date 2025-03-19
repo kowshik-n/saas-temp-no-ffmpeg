@@ -1,17 +1,31 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { parseSRT, formatSRT } from "../utils";
 import { timeToMs, msToTime, calculateMidTime, incrementTime } from "../utils";
 import { type Subtitle } from "../types";
+import { useAutoSave } from "./useAutoSave";
+import { useSubtitleHistory } from "./useSubtitleHistory";
 
 export function useSubtitles(isPro: boolean) {
   const { toast } = useToast();
-  const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
   const [currentSubtitleId, setCurrentSubtitleId] = useState<number | null>(
     null,
   );
   const [wordsPerSubtitle, setWordsPerSubtitle] = useState<number>(1);
-  const subtitleContainerRef = useRef<HTMLDivElement>(null);
+
+  // Use history management for subtitles
+  const {
+    subtitles,
+    setSubtitles,
+    performAction,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    resetHistory,
+  } = useSubtitleHistory([]);
+
+  const { saveToLocalStorage, loadFromLocalStorage } = useAutoSave(subtitles);
 
   const handleImportSRT = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,7 +39,8 @@ export function useSubtitles(isPro: boolean) {
           try {
             const parsedSubtitles = parseSRT(content);
 
-            setSubtitles(parsedSubtitles);
+            // Reset history with new subtitles
+            resetHistory(parsedSubtitles);
             toast({
               title: "SRT file imported successfully",
               description: `Loaded ${parsedSubtitles.length} subtitles`,
@@ -43,27 +58,27 @@ export function useSubtitles(isPro: boolean) {
       };
       reader.readAsText(file);
     },
-    [toast],
+    [toast, resetHistory],
   );
 
   const updateSubtitle = useCallback(
     (id: number, field: keyof Subtitle, value: string) => {
-      setSubtitles((prev) =>
+      performAction((prev) =>
         prev.map((sub) => (sub.id === id ? { ...sub, [field]: value } : sub)),
       );
     },
-    [],
+    [performAction],
   );
 
   const deleteSubtitle = useCallback(
     (id: number) => {
-      setSubtitles((prev) => prev.filter((sub) => sub.id !== id));
+      performAction((prev) => prev.filter((sub) => sub.id !== id));
       toast({
         title: "Subtitle deleted",
         description: "The subtitle has been removed",
       });
     },
-    [toast],
+    [toast, performAction],
   );
 
   const downloadSRT = useCallback(() => {
@@ -94,7 +109,7 @@ export function useSubtitles(isPro: boolean) {
         return;
       }
 
-      setSubtitles((prev) => {
+      performAction((prev) => {
         const currentSubtitle = prev.find((s) => s.id === afterId);
         const newId = Math.max(...prev.map((s) => s.id), 0) + 1;
         const index = currentSubtitle
@@ -113,7 +128,7 @@ export function useSubtitles(isPro: boolean) {
         return [...prev.slice(0, index), newSubtitle, ...prev.slice(index)];
       });
     },
-    [isPro, subtitles.length, toast],
+    [isPro, subtitles.length, toast, performAction],
   );
 
   const mergeSubtitles = useCallback(
@@ -155,7 +170,7 @@ export function useSubtitles(isPro: boolean) {
           endTime: currentSubtitle.endTime,
           text: `${prevSubtitle.text}\n${currentSubtitle.text}`,
         };
-        setSubtitles((prev) => [
+        performAction((prev) => [
           ...prev.slice(0, index - 1),
           mergedSubtitle,
           ...prev.slice(index + 1),
@@ -171,7 +186,7 @@ export function useSubtitles(isPro: boolean) {
           endTime: nextSubtitle.endTime,
           text: `${currentSubtitle.text}\n${nextSubtitle.text}`,
         };
-        setSubtitles((prev) => [
+        performAction((prev) => [
           ...prev.slice(0, index),
           mergedSubtitle,
           ...prev.slice(index + 2),
@@ -182,7 +197,7 @@ export function useSubtitles(isPro: boolean) {
         });
       }
     },
-    [isPro, subtitles, toast],
+    [isPro, subtitles, toast, performAction],
   );
 
   const splitSubtitle = useCallback(
@@ -222,7 +237,7 @@ export function useSubtitles(isPro: boolean) {
 
       const index = subtitles.findIndex((s) => s.id === id);
 
-      setSubtitles((prev) => [
+      performAction((prev) => [
         ...prev.slice(0, index),
         firstHalf,
         secondHalf,
@@ -234,7 +249,7 @@ export function useSubtitles(isPro: boolean) {
         description: "The subtitle has been split into two parts",
       });
     },
-    [isPro, subtitles, toast],
+    [isPro, subtitles, toast, performAction],
   );
 
   const handleTimeUpdate = useCallback(
@@ -251,12 +266,13 @@ export function useSubtitles(isPro: boolean) {
   );
 
   const handleReset = useCallback(() => {
-    setSubtitles([]);
+    resetHistory([]);
+    localStorage.removeItem("subtitle_editor_subtitles");
     toast({
       title: "Project reset",
       description: "All subtitles have been cleared",
     });
-  }, [toast]);
+  }, [toast, resetHistory]);
 
   const handleSplitAllSubtitles = useCallback(() => {
     if (!isPro) {
@@ -268,7 +284,7 @@ export function useSubtitles(isPro: boolean) {
       return;
     }
 
-    setSubtitles((prev) => {
+    performAction((prev) => {
       const newSubtitles: Subtitle[] = [];
       let nextId = Math.max(...prev.map((s) => s.id)) + 1;
 
@@ -321,11 +337,30 @@ export function useSubtitles(isPro: boolean) {
     });
   }, [isPro, wordsPerSubtitle, toast]);
 
+  // Load saved subtitles on initial mount
+  useEffect(() => {
+    const savedSubtitles = loadFromLocalStorage();
+    if (savedSubtitles && savedSubtitles.length > 0) {
+      resetHistory(savedSubtitles);
+      toast({
+        title: "Work restored",
+        description: `Loaded ${savedSubtitles.length} saved subtitles`,
+      });
+    }
+  }, [loadFromLocalStorage, toast, resetHistory]);
+
+  // Save subtitles when they change
+  useEffect(() => {
+    if (subtitles.length > 0) {
+      saveToLocalStorage();
+    }
+  }, [subtitles, saveToLocalStorage]);
+
   return {
     subtitles,
     currentSubtitleId,
     wordsPerSubtitle,
-    subtitleContainerRef,
+
     handleImportSRT,
     updateSubtitle,
     deleteSubtitle,
@@ -337,5 +372,9 @@ export function useSubtitles(isPro: boolean) {
     handleReset,
     handleSplitAllSubtitles,
     setWordsPerSubtitle,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   };
 }
