@@ -1,8 +1,9 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { parseSRT, formatSRT } from "../utils";
 import { timeToMs, msToTime, calculateMidTime, incrementTime } from "../utils";
 import { type Subtitle } from "../types";
+import { useAutoSave } from "./useAutoSave";
 
 export function useSubtitles(isPro: boolean) {
   const { toast } = useToast();
@@ -12,6 +13,7 @@ export function useSubtitles(isPro: boolean) {
   );
   const [wordsPerSubtitle, setWordsPerSubtitle] = useState<number>(1);
   const subtitleContainerRef = useRef<HTMLDivElement>(null);
+  const { saveToLocalStorage, loadFromLocalStorage } = useAutoSave(subtitles);
 
   const handleImportSRT = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -252,6 +254,7 @@ export function useSubtitles(isPro: boolean) {
 
   const handleReset = useCallback(() => {
     setSubtitles([]);
+    localStorage.removeItem("subtitle_editor_subtitles");
     toast({
       title: "Project reset",
       description: "All subtitles have been cleared",
@@ -320,6 +323,25 @@ export function useSubtitles(isPro: boolean) {
       return newSubtitles;
     });
   }, [isPro, wordsPerSubtitle, toast]);
+
+  // Load saved subtitles on initial mount
+  useEffect(() => {
+    const savedSubtitles = loadFromLocalStorage();
+    if (savedSubtitles && savedSubtitles.length > 0) {
+      setSubtitles(savedSubtitles);
+      toast({
+        title: "Work restored",
+        description: `Loaded ${savedSubtitles.length} saved subtitles`,
+      });
+    }
+  }, [loadFromLocalStorage, toast]);
+
+  // Save subtitles when they change
+  useEffect(() => {
+    if (subtitles.length > 0) {
+      saveToLocalStorage();
+    }
+  }, [subtitles, saveToLocalStorage]);
 
   return {
     subtitles,

@@ -1,10 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { AppHeader, WelcomeScreen } from "@/features/landing";
 import {
   EditorWorkspace,
   useVideoUpload,
   useSubtitles,
 } from "@/features/subtitles";
+import { useKeyboardShortcuts } from "@/features/subtitles/hooks/useKeyboardShortcuts";
 
 function Home() {
   // State for pro mode toggle
@@ -44,6 +45,19 @@ function Home() {
     setCurrentTime(time);
     handleTimeUpdate(time);
   };
+
+  // Setup keyboard shortcuts
+  useKeyboardShortcuts({
+    videoRef,
+    subtitles,
+    currentSubtitleId,
+    onAddSubtitle: addNewSubtitle,
+    onSplitSubtitle: splitSubtitle,
+    onMergeSubtitle: mergeSubtitles,
+    onDeleteSubtitle: deleteSubtitle,
+    onDownloadSRT: downloadSRT,
+    isPro,
+  });
 
   return (
     <div className="min-h-screen bg-background">

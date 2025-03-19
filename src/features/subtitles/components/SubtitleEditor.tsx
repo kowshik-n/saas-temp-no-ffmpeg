@@ -8,7 +8,12 @@ import {
   Upload,
   RefreshCw,
   Trash2,
+  Keyboard,
+  Search,
 } from "lucide-react";
+import { ShortcutsHelp } from "./ShortcutsHelp";
+import { ProjectStats } from "./ProjectStats";
+import { UndoRedoButtons } from "./UndoRedoButtons";
 import { type Subtitle } from "../types";
 import { formatSRT } from "../utils";
 import { getWordCount } from "../utils";
@@ -40,6 +45,7 @@ interface SubtitleEditorProps {
   setWordsPerSubtitle: (value: number) => void;
   fileInputRef: React.RefObject<HTMLInputElement>;
   isPro: boolean;
+  onJumpToTimestamp: (timestamp: string) => void;
 }
 
 export default function SubtitleEditor({
@@ -58,10 +64,25 @@ export default function SubtitleEditor({
   setWordsPerSubtitle,
   fileInputRef,
   isPro,
+  onJumpToTimestamp,
 }: SubtitleEditorProps) {
-  const [selectedSubtitles, setSelectedSubtitles] = useState<number[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredSubtitles, setFilteredSubtitles] = useState(subtitles);
   const subtitleContainerRef = useRef<HTMLDivElement>(null);
 
+  // Filter subtitles based on search query
+  React.useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredSubtitles(subtitles);
+    } else {
+      const filtered = subtitles.filter((subtitle) =>
+        subtitle.text.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+      setFilteredSubtitles(filtered);
+    }
+  }, [searchQuery, subtitles]);
+
+  // Scroll to current subtitle
   React.useEffect(() => {
     if (currentSubtitleId !== null && isPro) {
       const subtitleElement = document.getElementById(
@@ -95,6 +116,7 @@ export default function SubtitleEditor({
 
   return (
     <div className="h-full flex flex-col">
+      {subtitles.length > 0 && <ProjectStats subtitles={subtitles} />}
       <div className="p-4 border-b">
         <div className="flex flex-wrap gap-4">
           <input
@@ -102,7 +124,6 @@ export default function SubtitleEditor({
             accept=".srt"
             onChange={(e) => {
               onImportSRT(e);
-              setSelectedSubtitles([]);
             }}
             ref={fileInputRef}
             className="hidden"
@@ -121,7 +142,6 @@ export default function SubtitleEditor({
               variant="destructive"
               onClick={() => {
                 onReset();
-                setSelectedSubtitles([]);
               }}
               className="gap-2"
             >
@@ -130,14 +150,17 @@ export default function SubtitleEditor({
             </Button>
 
             {subtitles.length > 0 && (
-              <Button
-                variant="outline"
-                onClick={onDownloadSRT}
-                className="gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Export SRT
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={onDownloadSRT}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Export SRT
+                </Button>
+                <ShortcutsHelp isPro={isPro} />
+              </>
             )}
           </div>
           {subtitles.length > 0 && (
@@ -170,26 +193,40 @@ export default function SubtitleEditor({
             </div>
           )}
         </div>
+
+        {subtitles.length > 0 && (
+          <div className="mt-4 relative">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search subtitles..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent pl-10 pr-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              {searchQuery && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
+                  {filteredSubtitles.length} of {subtitles.length}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <ScrollArea className="flex-1 p-4" ref={subtitleContainerRef}>
         <div className="space-y-4">
-          {subtitles.map((subtitle) => (
+          {filteredSubtitles.map((subtitle) => (
             <Card
               id={`subtitle-${subtitle.id}`}
               key={subtitle.id}
               className={cn(
-                "p-4 transition-all duration-200 hover:shadow-md",
+                "p-4 transition-all duration-200 hover:shadow-md cursor-pointer",
                 currentSubtitleId === subtitle.id && "ring-2 ring-primary",
-                selectedSubtitles.includes(subtitle.id) &&
-                  "ring-2 ring-primary/50",
               )}
               onClick={() => {
-                setSelectedSubtitles((prev) =>
-                  prev.includes(subtitle.id)
-                    ? prev.filter((id) => id !== subtitle.id)
-                    : [...prev, subtitle.id],
-                );
+                onJumpToTimestamp(subtitle.startTime);
               }}
             >
               <div className="flex flex-col space-y-4">
@@ -293,20 +330,7 @@ export default function SubtitleEditor({
         </div>
       </ScrollArea>
 
-      {selectedSubtitles.length >= 2 && (
-        <div className="fixed bottom-4 right-4">
-          <Button
-            variant="default"
-            size="lg"
-            onClick={() => onMergeSubtitle(selectedSubtitles[0])}
-            className="shadow-lg"
-            disabled={!isPro}
-          >
-            <GitMerge className="mr-2 h-4 w-4" />
-            Merge Selected
-          </Button>
-        </div>
-      )}
+      {/* Removed multi-select merge functionality */}
     </div>
   );
 }
