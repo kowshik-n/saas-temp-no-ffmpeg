@@ -35,15 +35,14 @@ Manages premium feature access:
 2. Video is processed and displayed in the player
 3. User can import existing SRT files or create subtitles manually
 4. Subtitles are synchronized with video playback
-5. User can edit subtitle text, timing, and styling
+5. User can edit subtitle text and timing
 6. Final subtitles can be exported as SRT files
 
 ## Data Flow
 
 1. Video upload state is managed by useVideoUpload hook
 2. Subtitle data is managed by useSubtitles hook
-3. Subtitle styling is managed by useSubtitleStyles hook
-4. Pro feature access is controlled by ProContext
+3. Pro feature access is controlled by ProContext
 
 ## Technical Stack
 

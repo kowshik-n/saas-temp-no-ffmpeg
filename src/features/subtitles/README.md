@@ -10,9 +10,8 @@ This module handles all subtitle-related functionality in the application.
 
 ## Hooks
 
-- **useSubtitles**: Core hook for subtitle management (create, edit, delete, import/export)
+- **useSubtitles**: Core hook for subtitle management
 - **useVideoUpload**: Handles video file upload and metadata extraction
-- **useSubtitleStyles**: Manages subtitle styling options (font, color, position)
 
 ## Utils
 
@@ -29,8 +28,7 @@ This module handles all subtitle-related functionality in the application.
 
 The following features are restricted to Pro users:
 
-- Adding more than 10 subtitles ("unlimited-subtitles")
-- Splitting subtitles ("split-subtitle")
-- Merging subtitles ("merge-subtitle")
-- Splitting all subtitles ("split-all")
-- Custom subtitle styles ("custom-styles")
+- Adding more than 10 subtitles
+- Splitting subtitles
+- Merging subtitles
+- Splitting all subtitles

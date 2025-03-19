@@ -39,9 +39,6 @@ export function ProProvider({ children }: ProProviderProps) {
     "split-all": {
       message: "Upgrade to Pro to split all subtitles",
     },
-    "custom-styles": {
-      message: "Upgrade to Pro to customize subtitle styles",
-    },
   };
 
   const checkProFeature = (featureName: string) => {
