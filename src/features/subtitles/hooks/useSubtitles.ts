@@ -12,7 +12,6 @@ export function useSubtitles(isPro: boolean) {
     null,
   );
   const [wordsPerSubtitle, setWordsPerSubtitle] = useState<number>(1);
-  const subtitleContainerRef = useRef<HTMLDivElement>(null);
 
   // Use history management for subtitles
   const {
@@ -361,7 +360,7 @@ export function useSubtitles(isPro: boolean) {
     subtitles,
     currentSubtitleId,
     wordsPerSubtitle,
-    subtitleContainerRef,
+
     handleImportSRT,
     updateSubtitle,
     deleteSubtitle,

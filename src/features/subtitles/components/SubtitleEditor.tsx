@@ -8,14 +8,12 @@ import {
   Upload,
   RefreshCw,
   Trash2,
-  Keyboard,
   Search,
 } from "lucide-react";
 import { ShortcutsHelp } from "./ShortcutsHelp";
 import { ProjectStats } from "./ProjectStats";
 import { UndoRedoButtons } from "./UndoRedoButtons";
 import { type Subtitle } from "../types";
-import { formatSRT } from "../utils";
 import { getWordCount } from "../utils";
 import { Button } from "@/components/ui/button";
 import {

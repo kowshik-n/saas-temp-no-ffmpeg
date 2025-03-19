@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { AppHeader, WelcomeScreen } from "@/features/landing";
 import {
   EditorWorkspace,
@@ -26,7 +26,7 @@ function Home() {
     subtitles,
     currentSubtitleId,
     wordsPerSubtitle,
-    subtitleContainerRef,
+
     handleImportSRT,
     updateSubtitle,
     deleteSubtitle,
@@ -85,7 +85,6 @@ function Home() {
             isPro={isPro}
             fileInputRef={fileInputRef}
             videoRef={videoRef}
-            subtitleContainerRef={subtitleContainerRef}
             onTimeUpdate={onTimeUpdate}
             onImportSRT={handleImportSRT}
             onUpdateSubtitle={updateSubtitle}

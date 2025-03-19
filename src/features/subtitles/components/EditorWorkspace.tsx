@@ -20,7 +20,7 @@ interface EditorWorkspaceProps {
   isPro: boolean;
   fileInputRef: React.RefObject<HTMLInputElement>;
   videoRef: React.RefObject<HTMLVideoElement>;
-  subtitleContainerRef: React.RefObject<HTMLDivElement>;
+
   onTimeUpdate: (time: number) => void;
   onImportSRT: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onUpdateSubtitle: (id: number, field: keyof Subtitle, value: string) => void;
