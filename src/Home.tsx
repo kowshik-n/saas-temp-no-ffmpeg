@@ -1,9 +1,10 @@
 import React, { useState, useRef } from "react";
-import { AppHeader } from "./components/layout/AppHeader";
-import { WelcomeScreen } from "./components/landing/WelcomeScreen";
-import { EditorWorkspace } from "./components/editor/EditorWorkspace";
-import { useVideoUpload } from "./hooks/useVideoUpload";
-import { useSubtitles } from "./hooks/useSubtitles";
+import { AppHeader, WelcomeScreen } from "@/features/landing";
+import {
+  EditorWorkspace,
+  useVideoUpload,
+  useSubtitles,
+} from "@/features/subtitles";
 
 function Home() {
   // State for pro mode toggle

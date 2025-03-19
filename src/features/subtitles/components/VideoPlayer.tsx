@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { AlertCircle, Play, Pause, Volume2, VolumeX } from "lucide-react";
-import { type Subtitle } from "../types";
+import { type Subtitle, type AspectRatio } from "../types";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
@@ -12,7 +12,7 @@ interface VideoPlayerProps {
   videoRef: React.RefObject<HTMLVideoElement>;
 }
 
-const aspectRatios = {
+const aspectRatios: Record<AspectRatio, { width: number; height: number }> = {
   "16:9": { width: 16, height: 9 },
   "9:16": { width: 9, height: 16 },
   "4:3": { width: 4, height: 3 },
@@ -31,10 +31,9 @@ export const VideoPlayer = React.memo(function VideoPlayer({
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-  const [aspectRatio, setAspectRatio] = useState("16:9");
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("16:9");
   const [error, setError] = useState<string | null>(null);
   const [currentSubtitle, setCurrentSubtitle] = useState<Subtitle | null>(null);
-  // Removed videoRect state as it's no longer needed for subtitle positioning
 
   // Handle video metadata loaded
   useEffect(() => {
@@ -60,8 +59,6 @@ export const VideoPlayer = React.memo(function VideoPlayer({
     return () =>
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
   }, []);
-
-  // Removed video dimensions resize effect as it's no longer needed for subtitle positioning
 
   // Handle video events
   useEffect(() => {
@@ -155,13 +152,12 @@ export const VideoPlayer = React.memo(function VideoPlayer({
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Video Player</h2>
         <div className="flex items-center gap-2">
-          {/* <span className="text-sm text-muted-foreground">Display Ratio:</span>  */}
           {Object.keys(aspectRatios).map((ratio) => (
             <Button
               key={ratio}
               variant={aspectRatio === ratio ? "default" : "outline"}
               size="sm"
-              onClick={() => setAspectRatio(ratio)}
+              onClick={() => setAspectRatio(ratio as AspectRatio)}
             >
               {ratio}
             </Button>

@@ -10,8 +10,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { type Subtitle } from "../types";
-import { formatSRT } from "../utils/srtParser";
-import { getWordCount } from "../utils/timeUtils";
+import { formatSRT } from "../utils";
+import { getWordCount } from "../utils";
 import { Button } from "@/components/ui/button";
 import {
   Select,

@@ -1,12 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { parseSRT, formatSRT } from "../utils/srtParser";
-import {
-  timeToMs,
-  msToTime,
-  calculateMidTime,
-  incrementTime,
-} from "../utils/timeUtils";
+import { parseSRT, formatSRT } from "../utils";
+import { timeToMs, msToTime, calculateMidTime, incrementTime } from "../utils";
 import { type Subtitle } from "../types";
 
 export function useSubtitles(isPro: boolean) {
