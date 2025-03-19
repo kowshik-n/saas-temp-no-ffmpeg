@@ -1,15 +1,17 @@
 import React, { useState, useRef } from "react";
-import { AppHeader, WelcomeScreen } from "@/features/landing";
+import { AppHeader } from "@/features/landing";
 import {
   EditorWorkspace,
   useVideoUpload,
   useSubtitles,
 } from "@/features/subtitles";
+import { UserDashboard } from "@/features/dashboard";
 import { useKeyboardShortcuts } from "@/features/subtitles/hooks/useKeyboardShortcuts";
+import { usePro } from "@/context/ProContext";
 
 function Home() {
-  // State for pro mode toggle
-  const [isPro, setIsPro] = useState(false);
+  // Use the Pro context instead of local state
+  const { isPro, setIsPro } = usePro();
 
   // Video upload and playback state
   const { videoUrl, isUploading, isPortrait, uploadVideo } = useVideoUpload();
@@ -69,10 +71,11 @@ function Home() {
 
       <main className="container mx-auto px-1 py-1">
         {!videoUrl ? (
-          <WelcomeScreen
-            isUploading={isUploading}
+          <UserDashboard
             isPro={isPro}
             fileInputRef={fileInputRef}
+            isUploading={isUploading}
+            onImportSRT={handleImportSRT}
           />
         ) : (
           <EditorWorkspace
