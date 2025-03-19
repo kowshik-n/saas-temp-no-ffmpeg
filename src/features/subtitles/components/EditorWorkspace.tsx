@@ -1,14 +1,14 @@
 import React, { Suspense } from "react";
 import { Loader2 } from "lucide-react";
-import { VideoPlayer } from "../VideoPlayer";
-import { type Subtitle } from "../../types";
+import { VideoPlayer } from "./VideoPlayer";
+import { type Subtitle } from "../types";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 
-const SubtitleEditor = React.lazy(() => import("../SubtitleEditor"));
+const SubtitleEditor = React.lazy(() => import("./SubtitleEditor"));
 
 interface EditorWorkspaceProps {
   videoUrl: string;

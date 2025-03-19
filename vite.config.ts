@@ -1,7 +1,7 @@
-import path from 'path';
-import react from '@vitejs/plugin-react-swc';
-import { defineConfig } from 'vite';
-import { tempo } from 'tempo-devtools/dist/vite';
+import path from "path";
+import react from "@vitejs/plugin-react-swc";
+import { defineConfig } from "vite";
+import { tempo } from "tempo-devtools/dist/vite";
 
 const conditionalPlugins: [string, Record<string, any>][] = [];
 
@@ -11,10 +11,13 @@ if (process.env.TEMPO === "true") {
 }
 
 export default defineConfig({
-  base: process.env.NODE_ENV === "development" ? "/" : process.env.VITE_BASE_PATH || "/",
+  base:
+    process.env.NODE_ENV === "development"
+      ? "/"
+      : process.env.VITE_BASE_PATH || "/",
   optimizeDeps: {
     entries: ["src/main.tsx", "src/tempobook/**/*"],
-    exclude: ['lucide-react'],
+    exclude: ["lucide-react"],
   },
   plugins: [
     react({
@@ -26,7 +29,7 @@ export default defineConfig({
   resolve: {
     preserveSymlinks: true,
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   server: {
@@ -35,9 +38,10 @@ export default defineConfig({
   build: {
     // Configure build based on whether we're building for Tempo or not
     rollupOptions: {
-      input: process.env.TEMPO === "true" 
-        ? path.resolve(__dirname, 'src/tempobook/main.tsx')
-        : path.resolve(__dirname, 'src/main.tsx'),
+      input:
+        process.env.TEMPO === "true"
+          ? path.resolve(__dirname, "src/tempobook/main.tsx")
+          : path.resolve(__dirname, "src/main.tsx"),
     },
   },
 });
