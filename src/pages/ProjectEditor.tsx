@@ -80,6 +80,7 @@ export default function ProjectEditor() {
     canUndo,
     canRedo,
     loadFromLocalStorageManually,
+    loadSubtitlesFromDB,
   } = useSubtitles(isPro, projectIdNum);
 
   // Make sure we have a separate ref for SRT imports
@@ -88,6 +89,9 @@ export default function ProjectEditor() {
   // Load project data
   useEffect(() => {
     if (!projectId || !user) return;
+
+    // Clear existing subtitles when loading a new project
+    resetHistory([]);
 
     const fetchProjectData = async () => {
       try {
@@ -140,7 +144,7 @@ export default function ProjectEditor() {
     };
 
     fetchProjectData();
-  }, [projectId, user, navigate, toast, setVideoUrl, handleError]);
+  }, [projectId, user, navigate, toast, setVideoUrl, handleError, resetHistory]);
 
   // Auto-save effect
   useEffect(() => {
@@ -219,60 +223,6 @@ export default function ProjectEditor() {
     }
   };
 
-  // Load subtitles from database
-  const loadSubtitlesFromDB = async () => {
-    if (!projectIdNum || !user) return;
-    
-    try {
-      setLoading(true);
-      const subtitlesData = await getProjectSubtitles(projectIdNum);
-      
-      if (subtitlesData && subtitlesData.length > 0) {
-        // Format the subtitles from the database format to the app format
-        const formattedSubtitles = subtitlesData.map(sub => {
-          // Handle potential undefined values and ensure proper conversion
-          let startTime = sub.startTime;
-          let endTime = sub.endTime;
-          
-          if (sub.start_time !== undefined) {
-            // Convert seconds to milliseconds, then to time string
-            startTime = msToTime(sub.start_time * 1000);
-          }
-          
-          if (sub.end_time !== undefined) {
-            // Convert seconds to milliseconds, then to time string
-            endTime = msToTime(sub.end_time * 1000);
-          }
-          
-          return {
-            id: sub.id || Math.random() * 10000, // Ensure we have an ID
-            startTime: startTime,
-            endTime: endTime,
-            text: sub.text || ""
-          };
-        });
-        
-        // Use the resetHistory function from useSubtitles
-        resetHistory(formattedSubtitles);
-        
-        toast({
-          title: "Subtitles loaded",
-          description: `Loaded ${formattedSubtitles.length} subtitles from the database`,
-        });
-      } else {
-        toast({
-          title: "No subtitles found",
-          description: "No saved subtitles found for this project",
-        });
-      }
-    } catch (error) {
-      console.error("Error loading subtitles:", error);
-      handleError(error, "Error loading subtitles");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Handle file upload error
   const handleUploadError = (error: Error) => {
     handleError(error, "Error uploading video");
@@ -280,6 +230,36 @@ export default function ProjectEditor() {
       fileInputRef.current.value = "";
     }
   };
+
+  // Add this effect to clear local storage when changing projects
+  useEffect(() => {
+    // Clear localStorage when changing projects to prevent cross-contamination
+    if (projectId) {
+      localStorage.removeItem("subtitle_editor_subtitles");
+      console.log(`Cleared localStorage for project change to ${projectId}`);
+    }
+  }, [projectId]);
+
+  // Modify the auto-loading effect
+  useEffect(() => {
+    if (projectIdNum && !loading && project) {
+      console.log(`Auto-loading subtitles for project ${projectIdNum}`);
+      
+      // Clear any existing subtitles first
+      resetHistory([]);
+      
+      // Try to load subtitles from the database first
+      loadSubtitlesFromDB(projectIdNum).then(loaded => {
+        if (!loaded) {
+          console.log(`No subtitles found in database for project ${projectIdNum}`);
+          toast({
+            title: "No subtitles found",
+            description: "This project doesn't have any saved subtitles yet.",
+          });
+        }
+      });
+    }
+  }, [projectIdNum, loading, project, loadSubtitlesFromDB, resetHistory, toast]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -313,7 +293,7 @@ export default function ProjectEditor() {
             {/* Load saved subtitles button */}
             <Button 
               variant="outline" 
-              onClick={loadSubtitlesFromDB}
+              onClick={() => loadSubtitlesFromDB(projectIdNum)}
               disabled={loading}
               className="gap-2"
             >

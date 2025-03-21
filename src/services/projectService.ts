@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { handleSupabaseError } from "@/lib/errorHandling";
+import { Database } from "@/lib/supabaseTypes";
 
 export interface Project {
   id: number;
@@ -238,16 +239,17 @@ export async function deleteProject(projectId: number): Promise<void> {
   }
 }
 
-export async function getProjectSubtitles(
-  projectId: number,
-): Promise<Subtitle[]> {
+export async function getProjectSubtitles(projectId: number): Promise<Subtitle[]> {
   try {
     if (!projectId || isNaN(projectId)) {
       throw new Error("Valid project ID is required");
     }
 
+    console.log(`Fetching subtitles for project ID: ${projectId}`);
+    
+    // Make sure we're filtering by project_id
     const { data, error } = await supabase
-      .from("subtitles")
+      .from<"subtitles">("subtitles")
       .select("*")
       .eq("project_id", projectId)
       .order("start_time", { ascending: true });
@@ -257,12 +259,10 @@ export async function getProjectSubtitles(
       throw handleSupabaseError(error);
     }
 
+    console.log(`Retrieved ${data?.length || 0} subtitles for project ${projectId}`);
     return data || [];
   } catch (error) {
-    console.error("Error fetching subtitles:", error);
-    if (error && typeof error === "object" && "code" in error) {
-      throw error; // Already handled
-    }
+    console.error("Error getting project subtitles:", error);
     throw handleSupabaseError(error);
   }
 }
@@ -282,6 +282,8 @@ export async function saveSubtitles(
     if (!Array.isArray(subtitles)) {
       throw new Error("Subtitles must be an array");
     }
+
+    console.log(`Saving ${subtitles.length} subtitles for project ${projectId}`);
 
     // Verify the project exists and user has access
     const { data: projectData, error: projectError } = await supabase
@@ -312,6 +314,7 @@ export async function saveSubtitles(
 
     // If no subtitles to insert, return empty array
     if (subtitles.length === 0) {
+      console.log(`No subtitles to save for project ${projectId}`);
       return [];
     }
 
@@ -324,6 +327,8 @@ export async function saveSubtitles(
       created_at: new Date().toISOString(),
     }));
 
+    console.log(`Inserting ${subtitlesToInsert.length} subtitles for project ${projectId}`);
+
     const { data, error } = await supabase
       .from("subtitles")
       .insert(subtitlesToInsert)
@@ -334,9 +339,10 @@ export async function saveSubtitles(
       throw handleSupabaseError(error);
     }
 
+    console.log(`Successfully saved ${data?.length || 0} subtitles for project ${projectId}`);
     return data || [];
   } catch (error) {
-    console.error("Error saving subtitles:", error);
+    console.error(`Error saving subtitles for project ${projectId}:`, error);
     if (error && typeof error === "object" && "code" in error) {
       throw error; // Already handled
     }

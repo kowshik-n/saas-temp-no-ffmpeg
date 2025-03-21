@@ -5,7 +5,7 @@ import { timeToMs, msToTime, calculateMidTime, incrementTime } from "../utils";
 import { type Subtitle } from "../types";
 import { useAutoSave } from "./useAutoSave";
 import { useSubtitleHistory } from "./useSubtitleHistory";
-import { saveSubtitles } from "@/services/projectService";
+import { saveSubtitles, getProjectSubtitles } from "@/services/projectService";
 
 export function useSubtitles(isPro: boolean, projectId?: number | null) {
   const { toast } = useToast();
@@ -33,7 +33,7 @@ export function useSubtitles(isPro: boolean, projectId?: number | null) {
       const file = event.target.files?.[0];
       if (!file) return;
 
-      console.log("Importing SRT file:", file.name);
+      console.log(`Importing SRT file: ${file.name} for project: ${projectId || 'none'}`);
 
       const reader = new FileReader();
       reader.onload = async (e) => {
@@ -50,6 +50,7 @@ export function useSubtitles(isPro: boolean, projectId?: number | null) {
             // Auto-save to database if project ID is available
             if (projectId) {
               try {
+                console.log(`Auto-saving imported subtitles to project ${projectId}`);
                 // Format subtitles for database saving
                 // Convert string timestamps to integers for the database
                 const dbSubtitles = parsedSubtitles.map(subtitle => {
@@ -65,20 +66,20 @@ export function useSubtitles(isPro: boolean, projectId?: number | null) {
                 });
                 
                 await saveSubtitles(Number(projectId), dbSubtitles);
-                console.log("Subtitles automatically saved to database");
+                console.log(`Subtitles automatically saved to database for project ${projectId}`);
                 
                 // Show success message for saving to database
                 toast({
                   title: "SRT file imported and saved",
-                  description: `Loaded and saved ${parsedSubtitles.length} subtitles to your project`,
+                  description: `Loaded and saved ${parsedSubtitles.length} subtitles to project #${projectId}`,
                 });
               } catch (saveError) {
-                console.error("Error auto-saving subtitles:", saveError);
+                console.error(`Error auto-saving subtitles to project ${projectId}:`, saveError);
                 // Show a warning but don't block the import
                 toast({
                   title: "SRT file imported",
                   description: `Loaded ${parsedSubtitles.length} subtitles, but couldn't save to database. Changes will be saved when you click Save Project.`,
-                  variant: "warning",
+                  variant: "destructive",
                 });
               }
             } else {
@@ -103,7 +104,7 @@ export function useSubtitles(isPro: boolean, projectId?: number | null) {
       // Clear the file input value to allow re-importing the same file
       event.target.value = '';
     },
-    [toast, resetHistory, projectId],
+    [toast, resetHistory, projectId, saveSubtitles],
   );
 
   const updateSubtitle = useCallback(
@@ -421,6 +422,73 @@ export function useSubtitles(isPro: boolean, projectId?: number | null) {
     }
   }, [subtitles, saveToLocalStorage]);
 
+  // Add this effect to clear subtitles when project ID changes
+  useEffect(() => {
+    // Clear subtitles when project ID changes
+    if (projectId) {
+      console.log(`Project ID changed to ${projectId}, clearing subtitles`);
+      resetHistory([]);
+    }
+  }, [projectId, resetHistory]);
+
+  // Modify the loadSubtitlesFromDB function
+  const loadSubtitlesFromDB = useCallback(
+    async (projectId: number) => {
+      if (!projectId) return false;
+
+      try {
+        console.log("Loading subtitles from database for project:", projectId);
+        
+        // Clear any existing subtitles first
+        resetHistory([]);
+        
+        // Make sure we're passing the correct project ID to the query
+        const subtitlesData = await getProjectSubtitles(projectId);
+        
+        if (subtitlesData && subtitlesData.length > 0) {
+          console.log(`Found ${subtitlesData.length} subtitles for project ${projectId}`);
+          
+          // Format the subtitles from the database format to the app format
+          const formattedSubtitles = subtitlesData.map(sub => {
+            // Convert seconds to milliseconds, then to time string
+            const startTime = msToTime(sub.start_time * 1000);
+            const endTime = msToTime(sub.end_time * 1000);
+            
+            return {
+              id: sub.id || Math.random() * 10000, // Ensure we have an ID
+              startTime: startTime,
+              endTime: endTime,
+              text: sub.text || ""
+            };
+          });
+          
+          // Reset history with loaded subtitles
+          resetHistory(formattedSubtitles);
+          
+          toast({
+            title: "Subtitles loaded",
+            description: `Loaded ${formattedSubtitles.length} subtitles from project #${projectId}`,
+          });
+          return true;
+        } else {
+          console.log(`No subtitles found for project ${projectId}`);
+          // Clear any existing subtitles when none are found for this project
+          resetHistory([]);
+          return false;
+        }
+      } catch (error) {
+        console.error(`Error loading subtitles for project ${projectId}:`, error);
+        toast({
+          title: "Error loading subtitles",
+          description: "Could not load your saved subtitles. Try refreshing the page.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    },
+    [resetHistory, toast]
+  );
+
   return {
     subtitles,
     currentSubtitleId,
@@ -444,5 +512,6 @@ export function useSubtitles(isPro: boolean, projectId?: number | null) {
     canUndo,
     canRedo,
     loadFromLocalStorageManually,
+    loadSubtitlesFromDB,
   };
 }
