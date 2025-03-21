@@ -35,6 +35,15 @@ export function SignupForm() {
       return;
     }
 
+    if (password.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Password too short",
+        description: "Password must be at least 6 characters long.",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       await signUp(email, password);
@@ -42,13 +51,27 @@ export function SignupForm() {
         title: "Account created",
         description: "Your account has been created successfully.",
       });
-      navigate("/");
+      navigate("/dashboard");
     } catch (error: any) {
+      let errorMessage = "Failed to create account. Please try again.";
+
+      // Handle specific Firebase error codes
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage =
+          "Email already in use. Please login or use a different email.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email address. Please check and try again.";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "Password is too weak. Please use a stronger password.";
+      } else if (error.code === "auth/unauthorized-domain") {
+        errorMessage =
+          "This domain is not authorized for authentication. Please contact support.";
+      }
+
       toast({
         variant: "destructive",
         title: "Signup failed",
-        description:
-          error.message || "Failed to create account. Please try again.",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);

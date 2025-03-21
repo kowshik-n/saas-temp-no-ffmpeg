@@ -25,19 +25,25 @@ function App() {
         <Suspense
           fallback={
             <div className="flex items-center justify-center h-screen">
-              <p className="text-lg">Loading...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
             </div>
           }
         >
           {tempoRoutes}
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/pricing" element={<Pricing />} />
+
+            {/* Protected routes */}
             <Route path="/profile" element={<Profile />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/new-project" element={<NewProject />} />
             <Route path="/project/:projectId" element={<ProjectEditor />} />
+            <Route path="/settings" element={<Settings />} />
+
             {/* Allow Tempo routes to be captured before any catch-all */}
             {import.meta.env.VITE_TEMPO === "true" && (
               <Route path="/tempobook/*" />

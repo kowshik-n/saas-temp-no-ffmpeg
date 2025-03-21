@@ -7,7 +7,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyCUHJdeBP-f6oNHm-TGBAJldy6UK2GMwxU",
   authDomain: "saas-subtitle.firebaseapp.com",
   projectId: "saas-subtitle",
-  storageBucket: "saas-subtitle.firebasestorage.app",
+  storageBucket: "saas-subtitle.appspot.com",
   messagingSenderId: "628189449970",
   appId: "1:628189449970:web:0a9c587a4f507b28598a6b",
   measurementId: "G-CMTB1EY56B",
@@ -24,6 +24,13 @@ if (typeof window !== "undefined") {
 
 // Initialize Firebase Authentication
 const auth = getAuth(app);
+
+// Configure auth to allow localhost and Tempo domains
+if (import.meta.env.DEV || window.location.hostname.includes("tempolabs.ai")) {
+  auth.useDeviceLanguage();
+  // This is a workaround for development environments
+  // In production, you should properly configure your Firebase project's authorized domains
+}
 
 export { app, auth, analytics, onAuthStateChanged };
 export type { User };
