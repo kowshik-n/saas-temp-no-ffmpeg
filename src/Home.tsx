@@ -8,10 +8,13 @@ import {
 import { UserDashboard } from "@/features/dashboard";
 import { useKeyboardShortcuts } from "@/features/subtitles/hooks/useKeyboardShortcuts";
 import { usePro } from "@/context/ProContext";
+import { useAuth } from "@/context/AuthContext";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 function Home() {
   // Use the Pro context instead of local state
   const { isPro, setIsPro } = usePro();
+  const { user } = useAuth();
 
   // Video upload and playback state
   const { videoUrl, isUploading, isPortrait, uploadVideo } = useVideoUpload();

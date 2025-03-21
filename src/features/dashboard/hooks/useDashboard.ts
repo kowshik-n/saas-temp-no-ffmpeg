@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { usePro } from "@/context/ProContext";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { upgradeUserToPro } from "@/services/userService";
 
 export function useDashboard() {
   const { isPro, checkProFeature } = usePro();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
   const [selectedMenuItem, setSelectedMenuItem] = useState("projects");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -18,36 +26,91 @@ export function useDashboard() {
   };
 
   const handleNotificationsClick = () => {
-    console.log("Notifications clicked");
+    toast({
+      title: "Notifications",
+      description: "You have no new notifications",
+    });
   };
 
   const handleProfileClick = () => {
-    console.log("Profile clicked");
+    navigate("/profile");
   };
 
-  const handleUpgrade = () => {
-    console.log("Upgrade plan clicked");
-    // In a real app, this would navigate to a pricing page or open a payment modal
+  const handleUpgrade = async () => {
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to upgrade to Pro",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
+
+    try {
+      if (user) {
+        await upgradeUserToPro(user.uid);
+      }
+      toast({
+        title: "Upgrade Successful",
+        description: "You are now a Pro user!",
+      });
+    } catch (error) {
+      console.error("Error upgrading:", error);
+      toast({
+        title: "Upgrade Failed",
+        description: "There was an error upgrading your account",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleRemoveWatermark = () => {
-    console.log("Remove watermark clicked");
-    // In a real app, this would navigate to a pricing page or open a payment modal
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to remove watermarks",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
+
+    toast({
+      title: "Pro Feature",
+      description: "Upgrade to Pro to remove watermarks",
+    });
   };
 
   const handleSelectMenuItem = (item: string) => {
     setSelectedMenuItem(item);
-    console.log(`Selected menu item: ${item}`);
   };
 
   const handleGenerateMagicClips = () => {
-    const magicClipsFeature = checkProFeature("magic-clips");
-    if (!magicClipsFeature.allowed) {
-      console.log(magicClipsFeature.message);
-      // In a real app, this would show a toast or modal with the message
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to generate magic clips",
+        variant: "destructive",
+      });
+      navigate("/login");
       return;
     }
-    console.log("Generate magic clips");
+
+    const magicClipsFeature = checkProFeature("magic-clips");
+    if (!magicClipsFeature.allowed) {
+      toast({
+        title: "Pro Feature",
+        description:
+          magicClipsFeature.message || "This feature requires a Pro account",
+      });
+      return;
+    }
+
+    toast({
+      title: "Generating Clips",
+      description: "Your magic clips are being generated",
+    });
   };
 
   return {
