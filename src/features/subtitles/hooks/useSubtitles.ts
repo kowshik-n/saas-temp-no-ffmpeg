@@ -51,15 +51,15 @@ export function useSubtitles(isPro: boolean, projectId?: number | null) {
             if (projectId) {
               try {
                 // Format subtitles for database saving
-                // Convert string timestamps to numbers (milliseconds) for the database
+                // Convert string timestamps to integers for the database
                 const dbSubtitles = parsedSubtitles.map(subtitle => {
                   // Convert HH:MM:SS,mmm format to milliseconds
                   const startTimeMs = timeToMs(subtitle.startTime);
                   const endTimeMs = timeToMs(subtitle.endTime);
                   
                   return {
-                    start_time: startTimeMs / 1000, // Convert to seconds for DB
-                    end_time: endTimeMs / 1000,     // Convert to seconds for DB
+                    start_time: Math.floor(startTimeMs / 1000), // Convert to integer seconds for DB
+                    end_time: Math.floor(endTimeMs / 1000),     // Convert to integer seconds for DB
                     text: subtitle.text
                   };
                 });
@@ -425,6 +425,8 @@ export function useSubtitles(isPro: boolean, projectId?: number | null) {
     subtitles,
     currentSubtitleId,
     wordsPerSubtitle,
+    setSubtitles,
+    resetHistory,
 
     handleImportSRT,
     updateSubtitle,

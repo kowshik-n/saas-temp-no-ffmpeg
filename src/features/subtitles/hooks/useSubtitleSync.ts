@@ -20,8 +20,8 @@ export function useSubtitleSync(projectId: number | null, isPro: boolean) {
       try {
         // Format subtitles for saving
         const formattedSubtitles = subtitles.map((sub) => ({
-          start_time: sub.start_time,
-          end_time: sub.end_time,
+          start_time: timeToMs(sub.startTime),
+          end_time: timeToMs(sub.endTime),
           text: sub.text,
         }));
 
@@ -46,20 +46,6 @@ export function useSubtitleSync(projectId: number | null, isPro: boolean) {
     [projectId, toast, handleError],
   );
 
-  // Function to load subtitles from the server
-  const loadSubtitlesFromServer = useCallback(async () => {
-    if (!projectId) return null;
-
-    try {
-      const subtitlesData = await getProjectSubtitles(projectId);
-      setLastSyncTime(new Date());
-      return subtitlesData;
-    } catch (error) {
-      handleError(error, "Failed to load subtitles from server");
-      return null;
-    }
-  }, [projectId, handleError]);
-
   // Toggle auto-sync feature (Pro only)
   const toggleAutoSync = useCallback(() => {
     if (!isPro) {
@@ -80,12 +66,23 @@ export function useSubtitleSync(projectId: number | null, isPro: boolean) {
     });
   }, [isPro, autoSyncEnabled, toast]);
 
+  // Convert time format (HH:MM:SS,mmm) to milliseconds
+  const timeToMs = (time: string): number => {
+    const [hours, minutes, seconds] = time.split(":");
+    const [secs, ms] = seconds.split(",");
+    return (
+      parseInt(hours) * 3600000 +
+      parseInt(minutes) * 60000 +
+      parseInt(secs) * 1000 +
+      parseInt(ms)
+    );
+  };
+
   return {
     isSyncing,
     lastSyncTime,
     autoSyncEnabled,
     syncSubtitles,
-    loadSubtitlesFromServer,
     toggleAutoSync,
   };
 }

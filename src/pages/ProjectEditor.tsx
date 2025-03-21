@@ -19,6 +19,7 @@ import {
   getProjectSubtitles,
 } from "@/services/projectService";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
+import { msToTime, timeToMs } from "@/features/subtitles/utils";
 
 export default function ProjectEditor() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -62,6 +63,7 @@ export default function ProjectEditor() {
     currentSubtitleId,
     wordsPerSubtitle,
     setSubtitles,
+    resetHistory,
     handleImportSRT,
     updateSubtitle,
     deleteSubtitle,
@@ -118,20 +120,6 @@ export default function ProjectEditor() {
           setVideoUrl(projectData.video_url);
         }
 
-        // IMPORTANT: Comment out or remove the automatic loading of subtitles
-        // Only load subtitles if explicitly requested by the user
-        // This prevents loading random SRT files from the database
-        /*
-        try {
-          const subtitlesData = await getProjectSubtitles(projectIdNum);
-          if (subtitlesData && subtitlesData.length > 0) {
-            setSubtitles(subtitlesData);
-          }
-        } catch (subtitleError) {
-          // Just log subtitle errors but don't prevent loading the project
-          handleError(subtitleError, "Error loading subtitles");
-        }
-        */
       } catch (error) {
         console.error("Error loading project:", error);
         const errorMessage = handleError(error, "Failed to load project");
@@ -152,15 +140,18 @@ export default function ProjectEditor() {
     };
 
     fetchProjectData();
-  }, [
-    projectId,
-    user,
-    navigate,
-    toast,
-    setVideoUrl,
-    setSubtitles,
-    handleError,
-  ]);
+  }, [projectId, user, navigate, toast, setVideoUrl, handleError]);
+
+  // Auto-save effect
+  useEffect(() => {
+    if (!projectIdNum || !isPro || !autoSyncEnabled || subtitles.length === 0) return;
+
+    const autoSaveInterval = setInterval(() => {
+      syncSubtitles(subtitles, false); // Don't show toast for auto-save
+    }, 30000); // Auto-save every 30 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [projectIdNum, isPro, autoSyncEnabled, subtitles, syncSubtitles]);
 
   // Handle time updates from video player
   const onTimeUpdate = (time: number) => {
@@ -216,21 +207,19 @@ export default function ProjectEditor() {
     }
   };
 
-  // Modify the handleVideoReupload function to be more robust
+  // Handle video re-upload
   const handleVideoReupload = () => {
-    if (isUploading) return; // Prevent multiple uploads
+    if (isUploading) return;
     
-    // Reset any previous errors
     setLoadingError(null);
     
-    // Trigger file input click for VIDEO upload
     if (fileInputRef.current) {
       fileInputRef.current.value = ""; // Clear previous selection
       fileInputRef.current.click();
     }
   };
 
-  // Add this function to load subtitles from the database
+  // Load subtitles from database
   const loadSubtitlesFromDB = async () => {
     if (!projectIdNum || !user) return;
     
@@ -239,15 +228,33 @@ export default function ProjectEditor() {
       const subtitlesData = await getProjectSubtitles(projectIdNum);
       
       if (subtitlesData && subtitlesData.length > 0) {
-        // Make sure the subtitles are in the correct format
-        const formattedSubtitles = subtitlesData.map(sub => ({
-          id: sub.id,
-          startTime: sub.start_time || sub.startTime,
-          endTime: sub.end_time || sub.endTime,
-          text: sub.text
-        }));
+        // Format the subtitles from the database format to the app format
+        const formattedSubtitles = subtitlesData.map(sub => {
+          // Handle potential undefined values and ensure proper conversion
+          let startTime = sub.startTime;
+          let endTime = sub.endTime;
+          
+          if (sub.start_time !== undefined) {
+            // Convert seconds to milliseconds, then to time string
+            startTime = msToTime(sub.start_time * 1000);
+          }
+          
+          if (sub.end_time !== undefined) {
+            // Convert seconds to milliseconds, then to time string
+            endTime = msToTime(sub.end_time * 1000);
+          }
+          
+          return {
+            id: sub.id || Math.random() * 10000, // Ensure we have an ID
+            startTime: startTime,
+            endTime: endTime,
+            text: sub.text || ""
+          };
+        });
         
-        setSubtitles(formattedSubtitles);
+        // Use the resetHistory function from useSubtitles
+        resetHistory(formattedSubtitles);
+        
         toast({
           title: "Subtitles loaded",
           description: `Loaded ${formattedSubtitles.length} subtitles from the database`,
@@ -263,6 +270,14 @@ export default function ProjectEditor() {
       handleError(error, "Error loading subtitles");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle file upload error
+  const handleUploadError = (error: Error) => {
+    handleError(error, "Error uploading video");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
