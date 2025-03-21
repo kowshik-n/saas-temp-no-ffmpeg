@@ -284,15 +284,33 @@ export function useSubtitles(isPro: boolean) {
       return;
     }
 
+    if (wordsPerSubtitle <= 0) {
+      toast({
+        title: "Invalid setting",
+        description: "Words per subtitle must be greater than zero",
+        variant: "destructive",
+      });
+      return;
+    }
+
     performAction((prev) => {
+      if (prev.length === 0) {
+        toast({
+          title: "No subtitles to split",
+          description: "Add some subtitles first",
+          variant: "destructive",
+        });
+        return prev;
+      }
+
       const newSubtitles: Subtitle[] = [];
-      let nextId = Math.max(...prev.map((s) => s.id)) + 1;
+      let nextId = Math.max(...prev.map((s) => s.id), 0) + 1;
 
       prev.forEach((subtitle) => {
         const words = subtitle.text.trim().split(/\s+/);
 
-        if (words.length <= wordsPerSubtitle) {
-          // If subtitle has fewer words than the target, keep it as is
+        if (words.length <= wordsPerSubtitle || words.length <= 1) {
+          // If subtitle has fewer words than the target or just one word, keep it as is
           newSubtitles.push(subtitle);
           return;
         }
@@ -335,7 +353,7 @@ export function useSubtitles(isPro: boolean) {
 
       return newSubtitles;
     });
-  }, [isPro, wordsPerSubtitle, toast]);
+  }, [isPro, wordsPerSubtitle, toast, performAction]);
 
   // Load saved subtitles on initial mount
   useEffect(() => {
