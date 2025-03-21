@@ -7,9 +7,13 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   sendPasswordResetEmail,
+  setPersistence,
+  browserLocalPersistence,
+  updateProfile,
 } from "firebase/auth";
 import { supabase } from "@/lib/supabase";
 import { usePro } from "./ProContext";
+import { trackLogin, trackSignUp } from "@/services/analyticsService";
 
 interface AuthContextType {
   user: User | null;
@@ -62,10 +66,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (newUser) {
               setIsPro(newUser.is_pro);
+              console.log("Created new user in Supabase:", newUser);
             }
           } else if (userData) {
             // Update Pro status based on Supabase data
             setIsPro(userData.is_pro);
+            console.log("Found existing user in Supabase:", userData);
           }
         } catch (error) {
           console.error("Error syncing user with Supabase:", error);
@@ -80,6 +86,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string) => {
     try {
+      // Set persistence to LOCAL to keep the user logged in
+      await setPersistence(auth, browserLocalPersistence);
+
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -87,16 +96,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
       const user = userCredential.user;
 
+      // Set display name to email username
+      const displayName = email.split("@")[0];
+      await updateProfile(user, {
+        displayName: displayName,
+      });
+
       // Create user in Supabase
       await supabase.from("users").insert([
         {
           firebase_uid: user.uid,
           email: user.email,
-          display_name: user.email?.split("@")[0],
+          display_name: displayName,
           is_pro: false,
           created_at: new Date().toISOString(),
         },
       ]);
+
+      // Track signup event
+      trackSignUp("email");
     } catch (error) {
       console.error("Error signing up:", error);
       throw error;
@@ -105,7 +123,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      // Set persistence to LOCAL to keep the user logged in
+      await setPersistence(auth, browserLocalPersistence);
+
       await signInWithEmailAndPassword(auth, email, password);
+
+      // Track login event
+      trackLogin("email");
     } catch (error) {
       console.error("Error signing in:", error);
       throw error;
@@ -114,8 +138,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
+      // Set persistence to LOCAL to keep the user logged in
+      await setPersistence(auth, browserLocalPersistence);
+
       const provider = new GoogleAuthProvider();
+      // Add scopes if needed
+      provider.addScope("profile");
+      provider.addScope("email");
+
+      // Set custom parameters
+      provider.setCustomParameters({
+        prompt: "select_account",
+      });
+
       await signInWithPopup(auth, provider);
+
+      // Track login event
+      trackLogin("google");
     } catch (error) {
       console.error("Error signing in with Google:", error);
       throw error;

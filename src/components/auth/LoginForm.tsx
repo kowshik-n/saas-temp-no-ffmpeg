@@ -32,12 +32,32 @@ export function LoginForm() {
         title: "Success",
         description: "You have successfully logged in",
       });
-      navigate("/");
+
+      // Get the redirect path from location state or default to dashboard
+      const from = location.state?.from?.pathname || "/dashboard";
+      navigate(from, { replace: true });
     } catch (error: any) {
+      let errorMessage = "Failed to login. Please try again.";
+
+      // Handle specific Firebase error codes
+      if (error.code === "auth/invalid-credential") {
+        errorMessage = "Invalid email or password. Please try again.";
+      } else if (error.code === "auth/user-not-found") {
+        errorMessage = "No account found with this email. Please sign up.";
+      } else if (error.code === "auth/wrong-password") {
+        errorMessage = "Incorrect password. Please try again.";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage =
+          "Too many failed login attempts. Please try again later.";
+      } else if (error.code === "auth/unauthorized-domain") {
+        errorMessage =
+          "This domain is not authorized for authentication. Please contact support.";
+      }
+
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: error.message || "Failed to login. Please try again.",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
