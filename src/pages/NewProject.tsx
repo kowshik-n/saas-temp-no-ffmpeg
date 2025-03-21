@@ -15,7 +15,7 @@ import {
 import { FileVideo, Upload, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { createProject } from "@/services/projectService";
+import { useProjectActions } from "@/hooks/useProjectActions";
 import { useAuth } from "@/context/AuthContext";
 
 export default function NewProject() {
@@ -23,10 +23,10 @@ export default function NewProject() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { createProject, isLoading } = useProjectActions();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,43 +40,23 @@ export default function NewProject() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Title required",
-        description: "Please enter a title for your project",
-      });
-      return;
+    // Create object URL for the video file if it exists
+    let videoUrl = undefined;
+    if (videoFile) {
+      videoUrl = URL.createObjectURL(videoFile);
+      // In a real app, you would upload the file to storage here
+      // and use the returned URL instead of an object URL
     }
 
-    setIsUploading(true);
-    try {
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
+    const newProject = await createProject(
+      title,
+      videoUrl,
+      description || undefined,
+    );
 
-      await createProject(
-        user.uid,
-        title,
-        videoFile ? URL.createObjectURL(videoFile) : undefined,
-        description || undefined
-      );
-
-      toast({
-        title: "Project created",
-        description: `"${title}" has been created successfully`,
-      });
-
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Error creating project:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create project. Please try again.",
-      });
-    } finally {
-      setIsUploading(false);
+    if (newProject) {
+      // Navigate to the editor for the new project
+      navigate(`/project/${newProject.id}`);
     }
   };
 
@@ -162,9 +142,9 @@ export default function NewProject() {
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
-                  disabled={isUploading}
+                  disabled={isLoading}
                 >
-                  {isUploading ? "Creating Project..." : "Create Project"}
+                  {isLoading ? "Creating Project..." : "Create Project"}
                 </Button>
               </div>
             </form>

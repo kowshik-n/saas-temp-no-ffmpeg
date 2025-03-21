@@ -30,10 +30,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Create a local state for pro status that will be updated from Supabase
   const [isUserPro, setIsUserPro] = useState(false);
-  
+
   // Try to use the Pro context, but don't fail if it's not available
   let proContext;
   try {
@@ -62,22 +62,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // If user doesn't exist in Supabase, create them
           if (error || !userData) {
             console.log("User not found in Supabase, creating new user...");
-            
+
             try {
+              // Create user profile with default values
+              const newUserData = {
+                firebase_uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                display_name:
+                  firebaseUser.displayName ||
+                  firebaseUser.email?.split("@")[0] ||
+                  "User",
+                avatar_url: firebaseUser.photoURL,
+                is_pro: false,
+                created_at: new Date().toISOString(),
+              };
+
               const { data: newUser, error: createError } = await supabase
                 .from("users")
-                .insert([
-                  {
-                    firebase_uid: firebaseUser.uid,
-                    email: firebaseUser.email,
-                    display_name:
-                      firebaseUser.displayName ||
-                      firebaseUser.email?.split("@")[0],
-                    avatar_url: firebaseUser.photoURL,
-                    is_pro: false,
-                    created_at: new Date().toISOString(),
-                  },
-                ])
+                .insert([newUserData])
                 .select()
                 .single();
 
@@ -87,9 +89,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 console.log("Successfully created user in Supabase:", newUser);
                 // Update Pro status based on new user data
                 setIsPro(newUser.is_pro);
+
+                // Create default settings for the user
+                try {
+                  await supabase.from("user_settings").insert([
+                    {
+                      user_id: firebaseUser.uid,
+                      theme: "light",
+                      language: "en",
+                      notifications_enabled: true,
+                      created_at: new Date().toISOString(),
+                    },
+                  ]);
+                } catch (settingsError) {
+                  console.error("Error creating user settings:", settingsError);
+                }
               }
             } catch (insertError) {
-              console.error("Exception creating user in Supabase:", insertError);
+              console.error(
+                "Exception creating user in Supabase:",
+                insertError,
+              );
             }
           } else if (userData) {
             // Update Pro status based on Supabase data
@@ -99,6 +119,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
           console.error("Error syncing user with Supabase:", error);
         }
+      } else {
+        // User is signed out, reset pro status
+        setIsPro(false);
       }
 
       setLoading(false);
