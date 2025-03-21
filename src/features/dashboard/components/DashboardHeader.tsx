@@ -2,6 +2,8 @@ import React from "react";
 import { Search, Bell, FileVideo, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/context/AuthContext";
+import { Link } from "react-router-dom";
 
 interface DashboardHeaderProps {
   onSearch: (query: string) => void;
@@ -18,6 +20,17 @@ export function DashboardHeader({
   isTrialMode = true,
   onRemoveWatermark = () => {},
 }: DashboardHeaderProps) {
+  const { user } = useAuth();
+
+  // Get user initials for avatar
+  const userInitials = user?.displayName
+    ? user.displayName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+    : user?.email?.substring(0, 1).toUpperCase() || "U";
+
   return (
     <div className="w-full bg-background border-b border-border/50 py-3 px-6 shadow-sm">
       <div className="flex justify-between items-center">
@@ -26,7 +39,7 @@ export function DashboardHeader({
             <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white p-1.5 rounded-md mr-2">
               <FileVideo className="h-5 w-5" />
             </div>
-            <span className="font-bold text-lg">submagic</span>
+            <span className="font-bold text-lg">CaptionCraft</span>
           </div>
         </div>
 
@@ -62,17 +75,19 @@ export function DashboardHeader({
             </div>
           </Button>
 
-          <Button
-            variant="ghost"
-            className="rounded-full overflow-hidden"
-            onClick={onProfileClick}
-          >
-            <img
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=John"
-              alt="Profile"
-              className="h-8 w-8 rounded-full"
-            />
-          </Button>
+          <Link to="/profile">
+            <Button
+              variant="ghost"
+              className="rounded-full overflow-hidden"
+              onClick={onProfileClick}
+            >
+              <img
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=John"
+                alt="Profile"
+                className="h-8 w-8 rounded-full"
+              />
+            </Button>
+          </Link>
         </div>
       </div>
 
