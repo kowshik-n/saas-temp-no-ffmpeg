@@ -1,190 +1,103 @@
-import React, { useState } from "react";
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { useAuth } from "@/context/AuthContext";
-import { useSubscription } from "@/hooks/useSubscription";
-import { toast } from "@/hooks/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Settings() {
-  return (
-    <AuthGuard>
   const { user } = useAuth();
-  const { subscription } = useSubscription();
-  const [displayName, setDisplayName] = useState(user?.displayName || "");
-  const [isUpdating, setIsUpdating] = useState(false);
+  const { toast } = useToast();
+  const [emailNotifications, setEmailNotifications] = React.useState(true);
+  const [darkMode, setDarkMode] = React.useState(false);
+  const [autoSave, setAutoSave] = React.useState(true);
 
-  const handleUpdateProfile = async () => {
-    if (!user) return;
-
-    try {
-      setIsUpdating(true);
-
-      // Update user in Supabase
-      const { data, error } = await supabase
-        .from("users")
-        .update({
-          display_name: displayName,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("firebase_uid", user.uid);
-
-      if (error) throw error;
-
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
-      });
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast({
-        title: "Update failed",
-        description:
-          "There was an error updating your profile. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUpdating(false);
-    }
+  const handleSaveSettings = () => {
+    toast({
+      title: "Settings saved",
+      description: "Your preferences have been updated successfully.",
+    });
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Account Settings</h1>
+    <div className="container mx-auto py-6">
+      <DashboardHeader title="Settings" />
+      
+      <div className="grid gap-6 mt-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Account Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-1">
+              <Label>Email</Label>
+              <div className="text-sm text-gray-500">{user?.email}</div>
+            </div>
+            
+            <Button variant="outline" className="mt-4">
+              Change Password
+            </Button>
+          </CardContent>
+        </Card>
 
-      <Tabs defaultValue="profile" className="max-w-3xl">
-        <TabsList className="mb-6">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="subscription">Subscription</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="profile">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
-                Update your account profile information and email address.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={user?.photoURL || undefined} />
-                  <AvatarFallback className="text-lg">
-                    {user?.displayName?.charAt(0) ||
-                      user?.email?.charAt(0) ||
-                      "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <Button variant="outline">Change Avatar</Button>
-              </div>
-
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="display-name">Display Name</Label>
-                  <Input
-                    id="display-name"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" value={user?.email || ""} disabled />
-                  <p className="text-sm text-gray-500">
-                    Email cannot be changed
-                  </p>
+        <Card>
+          <CardHeader>
+            <CardTitle>Preferences</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="email-notifications">Email Notifications</Label>
+                <div className="text-sm text-gray-500">
+                  Receive email updates about your account activity
                 </div>
               </div>
-
-              <Button
-                onClick={handleUpdateProfile}
-                disabled={isUpdating}
-                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
-              >
-                {isUpdating ? "Updating..." : "Save Changes"}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="subscription">
-          <Card>
-            <CardHeader>
-              <CardTitle>Subscription Plan</CardTitle>
-              <CardDescription>
-                Manage your subscription and billing information.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium text-lg">
-                      {subscription?.name || "Free Plan"}
-                    </h3>
-                    <p className="text-gray-500">
-                      {subscription?.id === "free"
-                        ? "Limited features"
-                        : "Full access to all features"}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-xl">
-                      ${subscription?.price || 0}
-                      {subscription?.price ? "/month" : ""}
-                    </p>
-                    {subscription?.id === "free" ? (
-                      <p className="text-green-600 text-sm">Free forever</p>
-                    ) : (
-                      <p className="text-gray-500 text-sm">Renews monthly</p>
-                    )}
-                  </div>
+              <Switch
+                id="email-notifications"
+                checked={emailNotifications}
+                onCheckedChange={setEmailNotifications}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="dark-mode">Dark Mode</Label>
+                <div className="text-sm text-gray-500">
+                  Use dark theme for the application interface
                 </div>
               </div>
-
-              <Button
-                onClick={() => (window.location.href = "/pricing")}
-                variant="outline"
-              >
-                {subscription?.id === "free"
-                  ? "Upgrade Plan"
-                  : "Manage Subscription"}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Settings</CardTitle>
-              <CardDescription>
-                Configure how you receive notifications.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-500">
-                Notification settings coming soon.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              <Switch
+                id="dark-mode"
+                checked={darkMode}
+                onCheckedChange={setDarkMode}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="auto-save">Auto Save</Label>
+                <div className="text-sm text-gray-500">
+                  Automatically save your work while editing
+                </div>
+              </div>
+              <Switch
+                id="auto-save"
+                checked={autoSave}
+                onCheckedChange={setAutoSave}
+              />
+            </div>
+            
+            <Button 
+              onClick={handleSaveSettings}
+              className="mt-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+            >
+              Save Changes
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
-  );
-    </AuthGuard>
   );
 }

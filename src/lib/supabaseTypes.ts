@@ -11,7 +11,7 @@ export interface Database {
     Tables: {
       users: {
         Row: {
-          id: number;
+          id: string;
           firebase_uid: string;
           email: string | null;
           display_name: string | null;
@@ -21,7 +21,7 @@ export interface Database {
           updated_at: string | null;
         };
         Insert: {
-          id?: number;
+          id?: string;
           firebase_uid: string;
           email?: string | null;
           display_name?: string | null;
@@ -31,7 +31,7 @@ export interface Database {
           updated_at?: string | null;
         };
         Update: {
-          id?: number;
+          id?: string;
           firebase_uid?: string;
           email?: string | null;
           display_name?: string | null;
@@ -48,7 +48,6 @@ export interface Database {
           title: string;
           description: string | null;
           video_url: string | null;
-          thumbnail_url: string | null;
           created_at: string;
           updated_at: string | null;
         };
@@ -58,7 +57,6 @@ export interface Database {
           title: string;
           description?: string | null;
           video_url?: string | null;
-          thumbnail_url?: string | null;
           created_at?: string;
           updated_at?: string | null;
         };
@@ -68,7 +66,6 @@ export interface Database {
           title?: string;
           description?: string | null;
           video_url?: string | null;
-          thumbnail_url?: string | null;
           created_at?: string;
           updated_at?: string | null;
         };

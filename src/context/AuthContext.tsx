@@ -30,7 +30,21 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { setIsPro } = usePro();
+  
+  // Create a local state for pro status that will be updated from Supabase
+  const [isUserPro, setIsUserPro] = useState(false);
+  
+  // Try to use the Pro context, but don't fail if it's not available
+  let proContext;
+  try {
+    proContext = usePro();
+  } catch (error) {
+    // Pro context not available, we'll use local state instead
+    console.log("Pro context not available, using local state");
+  }
+
+  // Use the Pro context's setter if available, otherwise use the local setter
+  const setIsPro = proContext?.setIsPro || setIsUserPro;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -47,26 +61,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           // If user doesn't exist in Supabase, create them
           if (error || !userData) {
-            const { data: newUser, error: createError } = await supabase
-              .from("users")
-              .insert([
-                {
-                  firebase_uid: firebaseUser.uid,
-                  email: firebaseUser.email,
-                  display_name:
-                    firebaseUser.displayName ||
-                    firebaseUser.email?.split("@")[0],
-                  avatar_url: firebaseUser.photoURL,
-                  is_pro: false,
-                  created_at: new Date().toISOString(),
-                },
-              ])
-              .select()
-              .single();
+            console.log("User not found in Supabase, creating new user...");
+            
+            try {
+              const { data: newUser, error: createError } = await supabase
+                .from("users")
+                .insert([
+                  {
+                    firebase_uid: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    display_name:
+                      firebaseUser.displayName ||
+                      firebaseUser.email?.split("@")[0],
+                    avatar_url: firebaseUser.photoURL,
+                    is_pro: false,
+                    created_at: new Date().toISOString(),
+                  },
+                ])
+                .select()
+                .single();
 
-            if (newUser) {
-              setIsPro(newUser.is_pro);
-              console.log("Created new user in Supabase:", newUser);
+              if (createError) {
+                console.error("Error creating user in Supabase:", createError);
+              } else {
+                console.log("Successfully created user in Supabase:", newUser);
+                // Update Pro status based on new user data
+                setIsPro(newUser.is_pro);
+              }
+            } catch (insertError) {
+              console.error("Exception creating user in Supabase:", insertError);
             }
           } else if (userData) {
             // Update Pro status based on Supabase data

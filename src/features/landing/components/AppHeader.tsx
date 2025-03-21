@@ -1,6 +1,5 @@
 import React from "react";
-import { Settings2, Crown, FileVideo, LayoutDashboard } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Settings2, FileVideo, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -16,8 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface AppHeaderProps {
-  isPro: boolean;
-  setIsPro: (value: boolean) => void;
+  isPro?: boolean;
+  setIsPro?: (value: boolean) => void;
 }
 
 export function AppHeader({ isPro, setIsPro }: AppHeaderProps) {
@@ -35,28 +34,9 @@ export function AppHeader({ isPro, setIsPro }: AppHeaderProps) {
               CaptionCraft
             </span>
           </Link>
-          {!isPro && (
-            <Badge
-              variant="secondary"
-              className="bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200/50"
-            >
-              Free Plan
-            </Badge>
-          )}
         </div>
 
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              checked={isPro}
-              onCheckedChange={setIsPro}
-              className="data-[state=checked]:bg-gradient-to-r from-orange-500 to-amber-500"
-            />
-            <Label className="text-sm font-medium">
-              {isPro ? "Pro Mode" : "Free Mode"}
-            </Label>
-          </div>
-
           {!loading &&
             (user ? (
               <div className="flex items-center space-x-3">
@@ -89,17 +69,6 @@ export function AppHeader({ isPro, setIsPro }: AppHeaderProps) {
                 </Link>
               </div>
             ))}
-
-          {!isPro && (
-            <Button
-              className="bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl transition-all duration-300"
-              size="sm"
-              onClick={() => setIsPro(true)}
-            >
-              <Crown className="mr-2 h-4 w-4" />
-              Upgrade to Pro
-            </Button>
-          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

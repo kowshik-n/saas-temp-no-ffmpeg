@@ -4,15 +4,17 @@ import routes from "./routes";
 import { Toaster } from "@/components/ui/toaster";
 import { ProProvider } from "./context/ProContext";
 import { AuthProvider } from "./context/AuthContext";
+import LandingPage from "./pages/LandingPage";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Dashboard from "./pages/Dashboard";
+import NewProject from "./pages/NewProject";
+import ProjectEditor from "./pages/ProjectEditor";
+import Profile from "./pages/Profile";
+import Pricing from "./pages/Pricing";
 
 // Lazy load pages for better performance
-const LandingPage = lazy(() => import("./pages/LandingPage"));
-const Login = lazy(() => import("./pages/Login"));
-const Signup = lazy(() => import("./pages/Signup"));
-const Profile = lazy(() => import("./pages/Profile"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const NewProject = lazy(() => import("./pages/NewProject"));
-const ProjectEditor = lazy(() => import("./pages/ProjectEditor"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 function App() {
   // Handle Tempo routes for development environment
@@ -35,14 +37,13 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/pricing" element={<Pricing />} />
 
             {/* Protected routes */}
             <Route path="/profile" element={<Profile />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/new-project" element={<NewProject />} />
             <Route path="/project/:projectId" element={<ProjectEditor />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/pricing" element={<Pricing />} />
 
             {/* Allow Tempo routes to be captured before any catch-all */}
             {import.meta.env.VITE_TEMPO === "true" && (

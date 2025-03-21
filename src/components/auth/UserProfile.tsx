@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 
 export function UserProfile() {
   const { user, signOut } = useAuth();
-  const { isPro, setIsPro } = usePro();
+  const { isPro } = usePro();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -95,15 +95,6 @@ export function UserProfile() {
             <span>{isPro ? "Pro Account" : "Free Account"}</span>
           </div>
         </div>
-
-        {!isPro && (
-          <Button
-            className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
-            onClick={() => setIsPro(true)}
-          >
-            Upgrade to Pro
-          </Button>
-        )}
       </CardContent>
       <CardFooter>
         <Button

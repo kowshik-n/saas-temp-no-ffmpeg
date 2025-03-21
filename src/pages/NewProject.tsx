@@ -15,16 +15,20 @@ import {
 import { FileVideo, Upload, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { createProject } from "@/services/projectService";
+import { useAuth } from "@/context/AuthContext";
 
 export default function NewProject() {
   useProtectedRoute();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,8 +51,16 @@ export default function NewProject() {
 
     setIsUploading(true);
     try {
-      // Simulate project creation
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      await createProject(
+        user.uid,
+        title,
+        videoFile ? URL.createObjectURL(videoFile) : undefined,
+        description || undefined
+      );
 
       toast({
         title: "Project created",

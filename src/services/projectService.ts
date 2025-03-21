@@ -6,7 +6,6 @@ export interface Project {
   title: string;
   description: string | null;
   video_url: string | null;
-  thumbnail_url: string | null;
   created_at: string;
   updated_at: string | null;
 }
@@ -22,18 +21,24 @@ export interface Subtitle {
 }
 
 export async function getUserProjects(userId: string): Promise<Project[]> {
-  const { data, error } = await supabase
-    .from("projects")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
+  try {
+    // Use the Firebase UID directly to query projects
+    const { data, error } = await supabase
+      .from("projects")
+      .select("*")
+      .eq("user_id", userId) // Use Firebase UID directly
+      .order("created_at", { ascending: false });
 
-  if (error) {
+    if (error) {
+      console.error("Error fetching projects:", error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
     console.error("Error fetching projects:", error);
     throw error;
   }
-
-  return data || [];
 }
 
 export async function getProject(projectId: number): Promise<Project> {
@@ -55,28 +60,34 @@ export async function createProject(
   userId: string,
   title: string,
   videoUrl?: string,
-  thumbnailUrl?: string,
+  description?: string
 ): Promise<Project> {
-  const { data, error } = await supabase
-    .from("projects")
-    .insert([
-      {
-        user_id: userId,
-        title,
-        video_url: videoUrl,
-        thumbnail_url: thumbnailUrl,
-        created_at: new Date().toISOString(),
-      },
-    ])
-    .select()
-    .single();
+  try {
+    // Use the Firebase UID directly as the user_id
+    const { data, error } = await supabase
+      .from("projects")
+      .insert([
+        {
+          user_id: userId, // Use Firebase UID directly
+          title,
+          description,
+          video_url: videoUrl,
+          created_at: new Date().toISOString(),
+        },
+      ])
+      .select()
+      .single();
 
-  if (error) {
+    if (error) {
+      console.error("Error creating project:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
     console.error("Error creating project:", error);
     throw error;
   }
-
-  return data;
 }
 
 export async function updateProject(
