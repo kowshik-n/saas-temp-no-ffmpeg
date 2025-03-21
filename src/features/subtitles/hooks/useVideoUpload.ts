@@ -63,10 +63,9 @@ export function useVideoUpload() {
           variant: "destructive",
         });
 
-        // Clean up the URL if it was created
-        if (videoUrl) {
-          URL.revokeObjectURL(videoUrl);
-          setVideoUrl("");
+        // Only clean up if a new URL was created during this upload attempt
+        if (url) {
+          URL.revokeObjectURL(url);
         }
       } finally {
         setIsUploading(false);

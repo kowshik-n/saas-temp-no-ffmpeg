@@ -11,7 +11,7 @@ import {
 import { useKeyboardShortcuts } from "@/features/subtitles/hooks/useKeyboardShortcuts";
 import { usePro } from "@/context/ProContext";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Upload, Loader2, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   getProject,
@@ -62,7 +62,6 @@ export default function ProjectEditor() {
     currentSubtitleId,
     wordsPerSubtitle,
     setSubtitles,
-
     handleImportSRT,
     updateSubtitle,
     deleteSubtitle,
@@ -78,7 +77,11 @@ export default function ProjectEditor() {
     redo,
     canUndo,
     canRedo,
-  } = useSubtitles(isPro);
+    loadFromLocalStorageManually,
+  } = useSubtitles(isPro, projectIdNum);
+
+  // Make sure we have a separate ref for SRT imports
+  const srtInputRef = useRef<HTMLInputElement>(null);
 
   // Load project data
   useEffect(() => {
@@ -115,7 +118,10 @@ export default function ProjectEditor() {
           setVideoUrl(projectData.video_url);
         }
 
-        // Load subtitles if available
+        // IMPORTANT: Comment out or remove the automatic loading of subtitles
+        // Only load subtitles if explicitly requested by the user
+        // This prevents loading random SRT files from the database
+        /*
         try {
           const subtitlesData = await getProjectSubtitles(projectIdNum);
           if (subtitlesData && subtitlesData.length > 0) {
@@ -125,6 +131,7 @@ export default function ProjectEditor() {
           // Just log subtitle errors but don't prevent loading the project
           handleError(subtitleError, "Error loading subtitles");
         }
+        */
       } catch (error) {
         console.error("Error loading project:", error);
         const errorMessage = handleError(error, "Failed to load project");
@@ -209,6 +216,56 @@ export default function ProjectEditor() {
     }
   };
 
+  // Modify the handleVideoReupload function to be more robust
+  const handleVideoReupload = () => {
+    if (isUploading) return; // Prevent multiple uploads
+    
+    // Reset any previous errors
+    setLoadingError(null);
+    
+    // Trigger file input click for VIDEO upload
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Clear previous selection
+      fileInputRef.current.click();
+    }
+  };
+
+  // Add this function to load subtitles from the database
+  const loadSubtitlesFromDB = async () => {
+    if (!projectIdNum || !user) return;
+    
+    try {
+      setLoading(true);
+      const subtitlesData = await getProjectSubtitles(projectIdNum);
+      
+      if (subtitlesData && subtitlesData.length > 0) {
+        // Make sure the subtitles are in the correct format
+        const formattedSubtitles = subtitlesData.map(sub => ({
+          id: sub.id,
+          startTime: sub.start_time || sub.startTime,
+          endTime: sub.end_time || sub.endTime,
+          text: sub.text
+        }));
+        
+        setSubtitles(formattedSubtitles);
+        toast({
+          title: "Subtitles loaded",
+          description: `Loaded ${formattedSubtitles.length} subtitles from the database`,
+        });
+      } else {
+        toast({
+          title: "No subtitles found",
+          description: "No saved subtitles found for this project",
+        });
+      }
+    } catch (error) {
+      console.error("Error loading subtitles:", error);
+      handleError(error, "Error loading subtitles");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-4">
@@ -216,27 +273,67 @@ export default function ProjectEditor() {
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
           </Button>
-
-          {project && (
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold">{project.title}</h1>
-              <div className="flex items-center gap-2">
-                {lastSyncTime && (
-                  <span className="text-xs text-muted-foreground">
-                    Last saved: {lastSyncTime.toLocaleTimeString()}
-                  </span>
-                )}
-                <Button
-                  variant="default"
-                  onClick={handleSave}
-                  disabled={saving || isSyncing}
-                >
+          
+          <div className="flex gap-2">
+            {/* Video upload button */}
+            <Button 
+              variant="outline" 
+              onClick={handleVideoReupload}
+              disabled={isUploading}
+              className="flex items-center gap-2"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Uploading...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4" />
+                  <span>Change Video</span>
+                </>
+              )}
+            </Button>
+            
+            {/* Load saved subtitles button */}
+            <Button 
+              variant="outline" 
+              onClick={loadSubtitlesFromDB}
+              disabled={loading}
+              className="gap-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Loading...</span>
+                </>
+              ) : (
+                <>
+                  <Database className="h-4 w-4" />
+                  <span>Load Saved Subtitles</span>
+                </>
+              )}
+            </Button>
+            
+            {/* Save project button */}
+            <Button
+              onClick={handleSave}
+              disabled={saving || isSyncing}
+              className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+            >
+              {saving || isSyncing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
                   <Save className="h-4 w-4 mr-2" />
-                  {saving || isSyncing ? "Saving..." : "Save Project"}
-                </Button>
-              </div>
-            </div>
-          )}
+                  <span>Save Project</span>
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {loading ? (
@@ -276,6 +373,7 @@ export default function ProjectEditor() {
                   wordsPerSubtitle={wordsPerSubtitle}
                   isPro={isPro}
                   fileInputRef={fileInputRef}
+                  srtInputRef={srtInputRef}
                   videoRef={videoRef}
                   onTimeUpdate={onTimeUpdate}
                   onImportSRT={handleImportSRT}
@@ -306,6 +404,14 @@ export default function ProjectEditor() {
         onChange={uploadVideo}
         className="hidden"
         disabled={isUploading}
+      />
+
+      <input
+        ref={srtInputRef}
+        type="file"
+        accept=".srt"
+        onChange={handleImportSRT}
+        className="hidden"
       />
     </div>
   );

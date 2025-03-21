@@ -120,24 +120,28 @@ export default function SubtitleEditor({
     return getWordCount(text) > 1;
   };
 
+  // Handle SRT import button click
+  const handleImportSRTClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Make sure we're using the correct file input
+    if (fileInputRef && fileInputRef.current) {
+      // Clear any previous selection
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
       {subtitles.length > 0 && <ProjectStats subtitles={subtitles} />}
       <div className="p-4 border-b">
         <div className="flex flex-wrap gap-4">
-          <input
-            type="file"
-            accept=".srt"
-            onChange={(e) => {
-              onImportSRT(e);
-            }}
-            ref={fileInputRef}
-            className="hidden"
-          />
           <div className="flex flex-wrap gap-2 items-center">
             <Button
               variant="secondary"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={handleImportSRTClick}
               className="gap-2"
             >
               <Upload className="h-4 w-4" />

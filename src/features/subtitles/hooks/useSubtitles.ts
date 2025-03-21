@@ -5,8 +5,9 @@ import { timeToMs, msToTime, calculateMidTime, incrementTime } from "../utils";
 import { type Subtitle } from "../types";
 import { useAutoSave } from "./useAutoSave";
 import { useSubtitleHistory } from "./useSubtitleHistory";
+import { saveSubtitles } from "@/services/projectService";
 
-export function useSubtitles(isPro: boolean) {
+export function useSubtitles(isPro: boolean, projectId?: number | null) {
   const { toast } = useToast();
   const [currentSubtitleId, setCurrentSubtitleId] = useState<number | null>(
     null,
@@ -28,23 +29,64 @@ export function useSubtitles(isPro: boolean) {
   const { saveToLocalStorage, loadFromLocalStorage } = useAutoSave(subtitles);
 
   const handleImportSRT = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file) return;
 
+      console.log("Importing SRT file:", file.name);
+
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const content = e.target?.result as string;
         if (content) {
           try {
+            console.log("SRT content loaded, parsing...");
             const parsedSubtitles = parseSRT(content);
+            console.log(`Parsed ${parsedSubtitles.length} subtitles`);
 
             // Reset history with new subtitles
             resetHistory(parsedSubtitles);
-            toast({
-              title: "SRT file imported successfully",
-              description: `Loaded ${parsedSubtitles.length} subtitles`,
-            });
+            
+            // Auto-save to database if project ID is available
+            if (projectId) {
+              try {
+                // Format subtitles for database saving
+                // Convert string timestamps to numbers (milliseconds) for the database
+                const dbSubtitles = parsedSubtitles.map(subtitle => {
+                  // Convert HH:MM:SS,mmm format to milliseconds
+                  const startTimeMs = timeToMs(subtitle.startTime);
+                  const endTimeMs = timeToMs(subtitle.endTime);
+                  
+                  return {
+                    start_time: startTimeMs / 1000, // Convert to seconds for DB
+                    end_time: endTimeMs / 1000,     // Convert to seconds for DB
+                    text: subtitle.text
+                  };
+                });
+                
+                await saveSubtitles(Number(projectId), dbSubtitles);
+                console.log("Subtitles automatically saved to database");
+                
+                // Show success message for saving to database
+                toast({
+                  title: "SRT file imported and saved",
+                  description: `Loaded and saved ${parsedSubtitles.length} subtitles to your project`,
+                });
+              } catch (saveError) {
+                console.error("Error auto-saving subtitles:", saveError);
+                // Show a warning but don't block the import
+                toast({
+                  title: "SRT file imported",
+                  description: `Loaded ${parsedSubtitles.length} subtitles, but couldn't save to database. Changes will be saved when you click Save Project.`,
+                  variant: "warning",
+                });
+              }
+            } else {
+              toast({
+                title: "SRT file imported successfully",
+                description: `Loaded ${parsedSubtitles.length} subtitles`,
+              });
+            }
           } catch (error) {
             console.error("SRT import error:", error);
             toast({
@@ -57,8 +99,11 @@ export function useSubtitles(isPro: boolean) {
         }
       };
       reader.readAsText(file);
+      
+      // Clear the file input value to allow re-importing the same file
+      event.target.value = '';
     },
-    [toast, resetHistory],
+    [toast, resetHistory, projectId],
   );
 
   const updateSubtitle = useCallback(
@@ -355,8 +400,8 @@ export function useSubtitles(isPro: boolean) {
     });
   }, [isPro, wordsPerSubtitle, toast, performAction]);
 
-  // Load saved subtitles on initial mount
-  useEffect(() => {
+  // Add a function to explicitly load from localStorage
+  const loadFromLocalStorageManually = useCallback(() => {
     const savedSubtitles = loadFromLocalStorage();
     if (savedSubtitles && savedSubtitles.length > 0) {
       resetHistory(savedSubtitles);
@@ -364,7 +409,9 @@ export function useSubtitles(isPro: boolean) {
         title: "Work restored",
         description: `Loaded ${savedSubtitles.length} saved subtitles`,
       });
+      return true;
     }
+    return false;
   }, [loadFromLocalStorage, toast, resetHistory]);
 
   // Save subtitles when they change
@@ -394,5 +441,6 @@ export function useSubtitles(isPro: boolean) {
     redo,
     canUndo,
     canRedo,
+    loadFromLocalStorageManually,
   };
 }

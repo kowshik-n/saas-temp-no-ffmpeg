@@ -19,6 +19,7 @@ interface EditorWorkspaceProps {
   wordsPerSubtitle: number;
   isPro: boolean;
   fileInputRef: React.RefObject<HTMLInputElement>;
+  srtInputRef: React.RefObject<HTMLInputElement>;
   videoRef: React.RefObject<HTMLVideoElement>;
 
   onTimeUpdate: (time: number) => void;
@@ -47,6 +48,7 @@ export function EditorWorkspace({
   wordsPerSubtitle,
   isPro,
   fileInputRef,
+  srtInputRef,
   videoRef,
   subtitleContainerRef,
   onTimeUpdate,
@@ -133,7 +135,7 @@ export function EditorWorkspace({
                 onReset={onReset}
                 wordsPerSubtitle={wordsPerSubtitle}
                 setWordsPerSubtitle={setWordsPerSubtitle}
-                fileInputRef={fileInputRef}
+                fileInputRef={srtInputRef}
                 isPro={isPro}
                 onJumpToTimestamp={handleJumpToTimestamp}
                 onUndo={onUndo}
