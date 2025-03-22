@@ -6,6 +6,7 @@ import { SidebarMenu } from "@/features/dashboard/components/SidebarMenu";
 import { DashboardHeader } from "@/features/dashboard/components/DashboardHeader";
 import { usePro } from "@/context/ProContext";
 import { useDashboard } from "@/features/dashboard/hooks/useDashboard";
+import { LoadingState } from "@/components/ui/loading-state";
 
 export function AppLayout() {
   const { user, loading } = useAuth();
@@ -20,13 +21,7 @@ export function AppLayout() {
 
   // Show loading state
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background/30 p-4">
-        <div className="w-full max-w-md text-center">
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   // Redirect to login if not authenticated

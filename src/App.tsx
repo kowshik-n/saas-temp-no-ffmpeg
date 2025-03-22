@@ -4,6 +4,7 @@ import routes from "./routes";
 import { Toaster } from "@/components/ui/toaster";
 import { ProProvider } from "./context/ProContext";
 import { AuthProvider } from "./context/AuthContext";
+import { LoadingState } from "@/components/ui/loading-state";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -24,13 +25,7 @@ function App() {
   return (
     <ProProvider>
       <AuthProvider>
-        <Suspense
-          fallback={
-            <div className="flex items-center justify-center h-screen">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-            </div>
-          }
-        >
+        <Suspense fallback={<LoadingState />}>
           {tempoRoutes}
           <Routes>
             {/* Public routes */}

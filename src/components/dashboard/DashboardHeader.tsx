@@ -1,9 +1,10 @@
 import React from "react";
-import { Bell, User, LogOut, FileVideo } from "lucide-react";
+import { Bell, LogOut, FileVideo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,15 +65,7 @@ export function DashboardHeader({ title = "Dashboard" }: DashboardHeaderProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
-                {user?.photoURL ? (
-                  <img
-                    src={user.photoURL}
-                    alt={user.displayName || "User"}
-                    className="h-8 w-8 rounded-full"
-                  />
-                ) : (
-                  <User className="h-5 w-5" />
-                )}
+                {user && <UserAvatar user={user} size="sm" />}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { LoadingState } from "@/components/ui/loading-state";
 
 interface GuestGuardProps {
   children: React.ReactNode;
@@ -14,11 +15,7 @@ export function GuestGuard({ children }: GuestGuardProps) {
   const from = location.state?.from?.pathname || "/dashboard";
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (user) {

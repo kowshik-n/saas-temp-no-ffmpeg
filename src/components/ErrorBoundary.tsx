@@ -1,49 +1,85 @@
 import React from "react";
-import { AlertTriangle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { ThemedButton } from "@/components/ui/themed-button";
+import { PageLayout } from "@/components/layout/PageLayout";
+import { ThemedCard } from "@/components/ui/themed-card";
 
-interface Props {
+interface ErrorBoundaryProps {
   children: React.ReactNode;
+  fallback?: React.ReactNode;
 }
 
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
 }
 
-export class ErrorBoundary extends React.Component<Props, State> {
-  public state: State = {
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  public state: ErrorBoundaryState = {
     hasError: false,
   };
 
-  public static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  public render() {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("Error caught by ErrorBoundary:", error, errorInfo);
+  }
+
+  handleReset = () => {
+    this.setState({ hasError: false, error: undefined });
+  };
+
+  render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
       return (
-        <div className="flex h-screen w-screen items-center justify-center p-4">
-          <Alert variant="destructive" className="max-w-xl">
-            <AlertTriangle className="h-5 w-5" />
-            <AlertTitle>Something went wrong</AlertTitle>
-            <AlertDescription className="mt-2">
-              <p className="mb-4">
-                An unexpected error occurred. Our team has been notified.
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-              >
-                Refresh Page
-              </Button>
-            </AlertDescription>
-          </Alert>
-        </div>
+        <PageLayout centered>
+          <ThemedCard
+            title="Something went wrong"
+            description="We've encountered an unexpected error"
+            className="w-full max-w-md"
+            centered
+          >
+            <div className="space-y-4">
+              <ErrorMessage
+                title="Application Error"
+                description={this.state.error?.message || "An unknown error occurred"}
+                variant="destructive"
+              />
+              
+              <div className="flex justify-center mt-4">
+                <ThemedButton 
+                  onClick={this.handleReset}
+                  variant="primary"
+                >
+                  Try again
+                </ThemedButton>
+              </div>
+            </div>
+          </ThemedCard>
+        </PageLayout>
       );
     }
 
     return this.props.children;
   }
+}
+
+// Functional component wrapper for easier usage
+export function withErrorBoundary<P extends object>(
+  Component: React.ComponentType<P>,
+  fallback?: React.ReactNode
+) {
+  return function WithErrorBoundary(props: P) {
+    return (
+      <ErrorBoundary fallback={fallback}>
+        <Component {...props} />
+      </ErrorBoundary>
+    );
+  };
 } 

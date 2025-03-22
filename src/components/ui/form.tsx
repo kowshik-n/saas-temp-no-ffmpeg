@@ -12,6 +12,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+import { ThemedButton } from "@/components/ui/themed-button";
 
 const Form = FormProvider;
 
@@ -165,6 +166,95 @@ const FormMessage = React.forwardRef<
 });
 FormMessage.displayName = 'FormMessage';
 
+interface CustomFormProps extends React.FormHTMLAttributes<HTMLFormElement> {
+  onSubmit: (e: React.FormEvent) => void;
+  isLoading?: boolean;
+  submitText?: string;
+  loadingText?: string;
+  className?: string;
+  buttonClassName?: string;
+  buttonVariant?: "primary" | "secondary" | "outline" | "ghost" | "link" | "danger";
+  fields: {
+    id: string;
+    label: string | React.ReactNode;
+    type: string;
+    placeholder?: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    required?: boolean;
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
+    description?: string;
+    error?: string;
+    className?: string;
+  }[];
+}
+
+// Define the CustomForm component but don't export it directly here
+const CustomForm = ({
+  onSubmit,
+  isLoading = false,
+  submitText = "Submit",
+  loadingText = "Submitting...",
+  className,
+  buttonClassName,
+  buttonVariant = "primary",
+  fields,
+  children,
+  ...props
+}: CustomFormProps) => {
+  return (
+    <form
+      onSubmit={onSubmit}
+      className={cn("space-y-4", className)}
+      {...props}
+    >
+      {fields.map((field) => (
+        <div key={field.id} className="space-y-2">
+          {typeof field.label === 'string' ? (
+            <Label htmlFor={field.id}>{field.label}</Label>
+          ) : (
+            field.label
+          )}
+          <input
+            id={field.id}
+            type={field.type}
+            placeholder={field.placeholder}
+            value={field.value}
+            onChange={field.onChange}
+            required={field.required}
+            minLength={field.minLength}
+            maxLength={field.maxLength}
+            pattern={field.pattern}
+            className={cn(
+              "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+              field.className
+            )}
+          />
+          {field.description && (
+            <p className="text-sm text-muted-foreground">{field.description}</p>
+          )}
+          {field.error && <p className="text-sm text-destructive">{field.error}</p>}
+        </div>
+      ))}
+      
+      {children}
+      
+      <ThemedButton
+        type="submit"
+        variant={buttonVariant}
+        isLoading={isLoading}
+        loadingText={loadingText}
+        className={cn("w-full", buttonClassName)}
+      >
+        {submitText}
+      </ThemedButton>
+    </form>
+  );
+};
+
+// Export everything in a single export statement to avoid duplicates
 export {
   useFormField,
   Form,
@@ -174,4 +264,5 @@ export {
   FormDescription,
   FormMessage,
   FormField,
+  CustomForm, // Export CustomForm only once
 };

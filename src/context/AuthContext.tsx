@@ -14,6 +14,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { usePro } from "./ProContext";
 import { trackLogin, trackSignUp } from "@/services/analyticsService";
+import { toastService } from "@/services/toast-service";
 
 interface AuthContextType {
   user: User | null;
@@ -161,8 +162,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Track signup event
       trackSignUp("email");
-    } catch (error) {
-      console.error("Error signing up:", error);
+      toastService.success("Welcome!", "Your account has been created successfully.");
+    } catch (error: any) {
+      toastService.handleAuthError(error);
       throw error;
     }
   };
@@ -176,8 +178,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Track login event
       trackLogin("email");
-    } catch (error) {
-      console.error("Error signing in:", error);
+      toastService.success("Welcome back!", "You have successfully signed in.");
+    } catch (error: any) {
+      toastService.handleAuthError(error);
       throw error;
     }
   };
@@ -201,8 +204,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Track login event
       trackLogin("google");
-    } catch (error) {
-      console.error("Error signing in with Google:", error);
+      toastService.success("Welcome!", "You have successfully signed in with Google.");
+    } catch (error: any) {
+      toastService.handleAuthError(error);
       throw error;
     }
   };
@@ -211,8 +215,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await firebaseSignOut(auth);
       setIsPro(false);
-    } catch (error) {
-      console.error("Error signing out:", error);
+      toastService.success("Signed out", "You have been signed out successfully.");
+    } catch (error: any) {
+      toastService.error("Sign out failed", "An error occurred while signing out.");
       throw error;
     }
   };
@@ -220,8 +225,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resetPassword = async (email: string) => {
     try {
       await sendPasswordResetEmail(auth, email);
-    } catch (error) {
-      console.error("Error resetting password:", error);
+      toastService.success(
+        "Password reset email sent",
+        "Check your inbox for instructions to reset your password."
+      );
+    } catch (error: any) {
+      toastService.error(
+        "Password reset failed",
+        "Failed to send password reset email. Please try again."
+      );
       throw error;
     }
   };
