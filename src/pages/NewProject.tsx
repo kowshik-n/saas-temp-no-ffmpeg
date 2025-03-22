@@ -17,6 +17,8 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useProjectActions } from "@/hooks/useProjectActions";
 import { useAuth } from "@/context/AuthContext";
+import { Container } from "@/components/ui/container";
+import { PageLayout } from "@/components/layout/PageLayout";
 
 export default function NewProject() {
   useProtectedRoute();
@@ -61,8 +63,8 @@ export default function NewProject() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-background py-8">
+      <PageLayout containerSize="2xl">
         <Button
           variant="ghost"
           className="mb-6"
@@ -150,7 +152,7 @@ export default function NewProject() {
             </form>
           </CardContent>
         </Card>
-      </div>
+      </PageLayout>
     </div>
   );
 }

@@ -39,6 +39,7 @@ function App() {
             <Route path="/new-project" element={<NewProject />} />
             <Route path="/project/:projectId" element={<ProjectEditor />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/settings" element={<Settings />} />
 
             {/* Allow Tempo routes to be captured before any catch-all */}
             {import.meta.env.VITE_TEMPO === "true" && (

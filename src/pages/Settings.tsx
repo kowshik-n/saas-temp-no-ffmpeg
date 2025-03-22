@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { PageLayout } from "@/components/layout/PageLayout";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -22,82 +23,86 @@ export default function Settings() {
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="min-h-screen bg-background">
       <DashboardHeader title="Settings" />
-      
-      <div className="grid gap-6 mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <Label>Email</Label>
-              <div className="text-sm text-gray-500">{user?.email}</div>
-            </div>
-            
-            <Button variant="outline" className="mt-4">
-              Change Password
-            </Button>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Preferences</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="email-notifications">Email Notifications</Label>
-                <div className="text-sm text-gray-500">
-                  Receive email updates about your account activity
-                </div>
+      <PageLayout containerSize="2xl" className="py-6">
+        <div className="grid gap-6 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1">
+                <Label>Email</Label>
+                <div className="text-sm text-gray-500">{user?.email}</div>
               </div>
-              <Switch
-                id="email-notifications"
-                checked={emailNotifications}
-                onCheckedChange={setEmailNotifications}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="dark-mode">Dark Mode</Label>
-                <div className="text-sm text-gray-500">
-                  Use dark theme for the application interface
+
+              <Button variant="outline" className="mt-4">
+                Change Password
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Preferences</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="email-notifications">
+                    Email Notifications
+                  </Label>
+                  <div className="text-sm text-gray-500">
+                    Receive email updates about your account activity
+                  </div>
                 </div>
+                <Switch
+                  id="email-notifications"
+                  checked={emailNotifications}
+                  onCheckedChange={setEmailNotifications}
+                />
               </div>
-              <Switch
-                id="dark-mode"
-                checked={darkMode}
-                onCheckedChange={setDarkMode}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="auto-save">Auto Save</Label>
-                <div className="text-sm text-gray-500">
-                  Automatically save your work while editing
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="dark-mode">Dark Mode</Label>
+                  <div className="text-sm text-gray-500">
+                    Use dark theme for the application interface
+                  </div>
                 </div>
+                <Switch
+                  id="dark-mode"
+                  checked={darkMode}
+                  onCheckedChange={setDarkMode}
+                />
               </div>
-              <Switch
-                id="auto-save"
-                checked={autoSave}
-                onCheckedChange={setAutoSave}
-              />
-            </div>
-            
-            <Button 
-              onClick={handleSaveSettings}
-              className="mt-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
-            >
-              Save Changes
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="auto-save">Auto Save</Label>
+                  <div className="text-sm text-gray-500">
+                    Automatically save your work while editing
+                  </div>
+                </div>
+                <Switch
+                  id="auto-save"
+                  checked={autoSave}
+                  onCheckedChange={setAutoSave}
+                />
+              </div>
+
+              <Button
+                onClick={handleSaveSettings}
+                className="mt-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+              >
+                Save Changes
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </PageLayout>
     </div>
   );
 }

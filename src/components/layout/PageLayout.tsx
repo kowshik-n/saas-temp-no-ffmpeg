@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import { Container } from "@/components/ui/container";
 
 interface PageLayoutProps {
   children: React.ReactNode;
@@ -11,6 +12,10 @@ interface PageLayoutProps {
   fullHeight?: boolean;
 }
 
+/**
+ * PageLayout component provides a consistent layout wrapper around Container
+ * Use this component for page-level layouts to maintain consistency
+ */
 export function PageLayout({
   children,
   className,
@@ -20,29 +25,19 @@ export function PageLayout({
   centered = false,
   fullHeight = false,
 }: PageLayoutProps) {
-  const containerSizes = {
-    xs: "max-w-xs",
-    sm: "max-w-sm",
-    md: "max-w-md",
-    lg: "max-w-lg",
-    xl: "max-w-xl",
-    "2xl": "max-w-2xl",
-    full: "w-full",
-  };
-
   return (
     <div
       className={cn(
-        containerSizes[containerSize],
-        "mx-auto",
-        withPadding && "py-6 px-4",
+        "w-full",
         withMargin && "my-4",
         centered && "flex flex-col items-center",
         fullHeight && "min-h-[calc(100vh-4rem)]",
-        className
+        className,
       )}
     >
-      {children}
+      <Container size={containerSize} padding={withPadding} className="w-full">
+        {children}
+      </Container>
     </div>
   );
-} 
+}

@@ -29,7 +29,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <DashboardHeader
         onSearch={handleSearch}
         onNotificationsClick={handleNotificationsClick}
@@ -38,15 +38,17 @@ export default function Dashboard() {
         onRemoveWatermark={handleRemoveWatermark}
       />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 gap-8">
-          <NewProjectSection
-            onUploadVideo={() => navigate("/new-project")}
-            onGenerateMagicClips={() => navigate("/new-project")}
-            isPro={isPro}
-          />
-          <ProjectsList onUpload={() => navigate("/new-project")} />
-        </div>
+      <main className="w-full py-8">
+        <Container size="2xl">
+          <div className="grid grid-cols-1 gap-8">
+            <NewProjectSection
+              onUploadVideo={() => navigate("/new-project")}
+              onGenerateMagicClips={() => navigate("/new-project")}
+              isPro={isPro}
+            />
+            <ProjectsList onUpload={() => navigate("/new-project")} />
+          </div>
+        </Container>
       </main>
     </div>
   );

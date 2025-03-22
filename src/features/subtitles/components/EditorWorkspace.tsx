@@ -50,7 +50,6 @@ export function EditorWorkspace({
   fileInputRef,
   srtInputRef,
   videoRef,
-  subtitleContainerRef,
   onTimeUpdate,
   onImportSRT,
   onUpdateSubtitle,
@@ -85,7 +84,7 @@ export function EditorWorkspace({
   };
 
   return (
-    <div className="rounded-xl overflow-hidden border bg-card shadow-lg">
+    <div className="rounded-xl overflow-hidden border bg-card shadow-lg w-full">
       <ResizablePanelGroup direction="horizontal">
         <ResizablePanel defaultSize={70} minSize={50}>
           <div className="">

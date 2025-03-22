@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { parseSRT, formatSRT } from "../utils";
 import { timeToMs, msToTime, calculateMidTime, incrementTime } from "../utils";
@@ -33,49 +33,39 @@ export function useSubtitles(isPro: boolean, projectId?: number | null) {
       const file = event.target.files?.[0];
       if (!file) return;
 
-      console.log(`Importing SRT file: ${file.name} for project: ${projectId || 'none'}`);
-
       const reader = new FileReader();
       reader.onload = async (e) => {
         const content = e.target?.result as string;
         if (content) {
           try {
-            console.log("SRT content loaded, parsing...");
             const parsedSubtitles = parseSRT(content);
-            console.log(`Parsed ${parsedSubtitles.length} subtitles`);
 
             // Reset history with new subtitles
             resetHistory(parsedSubtitles);
-            
+
             // Auto-save to database if project ID is available
             if (projectId) {
               try {
-                console.log(`Auto-saving imported subtitles to project ${projectId}`);
                 // Format subtitles for database saving
-                // Convert string timestamps to integers for the database
-                const dbSubtitles = parsedSubtitles.map(subtitle => {
+                const dbSubtitles = parsedSubtitles.map((subtitle) => {
                   // Convert HH:MM:SS,mmm format to milliseconds
                   const startTimeMs = timeToMs(subtitle.startTime);
                   const endTimeMs = timeToMs(subtitle.endTime);
-                  
+
                   return {
                     start_time: Math.floor(startTimeMs / 1000), // Convert to integer seconds for DB
-                    end_time: Math.floor(endTimeMs / 1000),     // Convert to integer seconds for DB
-                    text: subtitle.text
+                    end_time: Math.floor(endTimeMs / 1000), // Convert to integer seconds for DB
+                    text: subtitle.text,
                   };
                 });
-                
+
                 await saveSubtitles(Number(projectId), dbSubtitles);
-                console.log(`Subtitles automatically saved to database for project ${projectId}`);
-                
-                // Show success message for saving to database
+
                 toast({
                   title: "SRT file imported and saved",
                   description: `Loaded and saved ${parsedSubtitles.length} subtitles to project #${projectId}`,
                 });
               } catch (saveError) {
-                console.error(`Error auto-saving subtitles to project ${projectId}:`, saveError);
-                // Show a warning but don't block the import
                 toast({
                   title: "SRT file imported",
                   description: `Loaded ${parsedSubtitles.length} subtitles, but couldn't save to database. Changes will be saved when you click Save Project.`,
@@ -89,7 +79,6 @@ export function useSubtitles(isPro: boolean, projectId?: number | null) {
               });
             }
           } catch (error) {
-            console.error("SRT import error:", error);
             toast({
               title: "Import failed",
               description:
@@ -100,11 +89,11 @@ export function useSubtitles(isPro: boolean, projectId?: number | null) {
         }
       };
       reader.readAsText(file);
-      
+
       // Clear the file input value to allow re-importing the same file
-      event.target.value = '';
+      event.target.value = "";
     },
-    [toast, resetHistory, projectId, saveSubtitles],
+    [toast, resetHistory, projectId],
   );
 
   const updateSubtitle = useCallback(
@@ -431,62 +420,55 @@ export function useSubtitles(isPro: boolean, projectId?: number | null) {
     }
   }, [projectId, resetHistory]);
 
-  // Modify the loadSubtitlesFromDB function
   const loadSubtitlesFromDB = useCallback(
     async (projectId: number) => {
       if (!projectId) return false;
 
       try {
-        console.log("Loading subtitles from database for project:", projectId);
-        
         // Clear any existing subtitles first
         resetHistory([]);
-        
-        // Make sure we're passing the correct project ID to the query
+
         const subtitlesData = await getProjectSubtitles(projectId);
-        
+
         if (subtitlesData && subtitlesData.length > 0) {
-          console.log(`Found ${subtitlesData.length} subtitles for project ${projectId}`);
-          
           // Format the subtitles from the database format to the app format
-          const formattedSubtitles = subtitlesData.map(sub => {
+          const formattedSubtitles = subtitlesData.map((sub) => {
             // Convert seconds to milliseconds, then to time string
             const startTime = msToTime(sub.start_time * 1000);
             const endTime = msToTime(sub.end_time * 1000);
-            
+
             return {
-              id: sub.id || Math.random() * 10000, // Ensure we have an ID
+              id: sub.id || Math.floor(Math.random() * 10000), // Ensure we have an ID
               startTime: startTime,
               endTime: endTime,
-              text: sub.text || ""
+              text: sub.text || "",
             };
           });
-          
+
           // Reset history with loaded subtitles
           resetHistory(formattedSubtitles);
-          
+
           toast({
             title: "Subtitles loaded",
             description: `Loaded ${formattedSubtitles.length} subtitles from project #${projectId}`,
           });
           return true;
         } else {
-          console.log(`No subtitles found for project ${projectId}`);
           // Clear any existing subtitles when none are found for this project
           resetHistory([]);
           return false;
         }
       } catch (error) {
-        console.error(`Error loading subtitles for project ${projectId}:`, error);
         toast({
           title: "Error loading subtitles",
-          description: "Could not load your saved subtitles. Try refreshing the page.",
+          description:
+            "Could not load your saved subtitles. Try refreshing the page.",
           variant: "destructive",
         });
         return false;
       }
     },
-    [resetHistory, toast]
+    [resetHistory, toast],
   );
 
   return {

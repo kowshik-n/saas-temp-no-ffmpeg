@@ -56,17 +56,11 @@ export function useVideoUpload() {
           description: "You can now start adding subtitles",
         });
       } catch (error) {
-        console.error("Error uploading video:", error);
         toast({
           title: "Upload failed",
           description: "Please ensure you're uploading a valid video file",
           variant: "destructive",
         });
-
-        // Only clean up if a new URL was created during this upload attempt
-        if (url) {
-          URL.revokeObjectURL(url);
-        }
       } finally {
         setIsUploading(false);
         if (event.target) {
@@ -74,7 +68,7 @@ export function useVideoUpload() {
         }
       }
     },
-    [toast, videoUrl, handleVideoMetadata],
+    [toast, handleVideoMetadata],
   );
 
   return {

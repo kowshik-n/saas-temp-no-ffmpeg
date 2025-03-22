@@ -1,14 +1,17 @@
 import { UserProfile } from "@/components/auth/UserProfile";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { Container } from "@/components/ui/container";
+import { PageLayout } from "@/components/layout/PageLayout";
 
 export default function Profile() {
   return (
     <AuthGuard>
-      <div className="min-h-screen flex items-center justify-center bg-background/30 p-4">
-        <div className="w-full max-w-md">
-          <UserProfile />
-        </div>
-      </div>
+      <PageLayout
+        containerSize="md"
+        className="min-h-screen flex items-center justify-center bg-background/30"
+      >
+        <UserProfile />
+      </PageLayout>
     </AuthGuard>
   );
 }

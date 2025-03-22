@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Container } from "@/components/ui/container";
+import { PageLayout } from "@/components/layout/PageLayout";
 import { useProtectedRoute } from "@/hooks/useProtectedRoute";
 import {
   EditorWorkspace,
@@ -123,7 +125,6 @@ export default function ProjectEditor() {
         if (projectData.video_url) {
           setVideoUrl(projectData.video_url);
         }
-
       } catch (error) {
         console.error("Error loading project:", error);
         const errorMessage = handleError(error, "Failed to load project");
@@ -144,11 +145,20 @@ export default function ProjectEditor() {
     };
 
     fetchProjectData();
-  }, [projectId, user, navigate, toast, setVideoUrl, handleError, resetHistory]);
+  }, [
+    projectId,
+    user,
+    navigate,
+    toast,
+    setVideoUrl,
+    handleError,
+    resetHistory,
+  ]);
 
   // Auto-save effect
   useEffect(() => {
-    if (!projectIdNum || !isPro || !autoSyncEnabled || subtitles.length === 0) return;
+    if (!projectIdNum || !isPro || !autoSyncEnabled || subtitles.length === 0)
+      return;
 
     const autoSaveInterval = setInterval(() => {
       syncSubtitles(subtitles, false); // Don't show toast for auto-save
@@ -214,9 +224,9 @@ export default function ProjectEditor() {
   // Handle video re-upload
   const handleVideoReupload = () => {
     if (isUploading) return;
-    
+
     setLoadingError(null);
-    
+
     if (fileInputRef.current) {
       fileInputRef.current.value = ""; // Clear previous selection
       fileInputRef.current.click();
@@ -244,14 +254,16 @@ export default function ProjectEditor() {
   useEffect(() => {
     if (projectIdNum && !loading && project) {
       console.log(`Auto-loading subtitles for project ${projectIdNum}`);
-      
+
       // Clear any existing subtitles first
       resetHistory([]);
-      
+
       // Try to load subtitles from the database first
-      loadSubtitlesFromDB(projectIdNum).then(loaded => {
+      loadSubtitlesFromDB(projectIdNum).then((loaded) => {
         if (!loaded) {
-          console.log(`No subtitles found in database for project ${projectIdNum}`);
+          console.log(
+            `No subtitles found in database for project ${projectIdNum}`,
+          );
           toast({
             title: "No subtitles found",
             description: "This project doesn't have any saved subtitles yet.",
@@ -259,20 +271,27 @@ export default function ProjectEditor() {
         }
       });
     }
-  }, [projectIdNum, loading, project, loadSubtitlesFromDB, resetHistory, toast]);
+  }, [
+    projectIdNum,
+    loading,
+    project,
+    loadSubtitlesFromDB,
+    resetHistory,
+    toast,
+  ]);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-4">
+      <PageLayout containerSize="2xl" className="py-4">
         <div className="flex justify-between items-center mb-4">
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
           </Button>
-          
+
           <div className="flex gap-2">
             {/* Video upload button */}
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleVideoReupload}
               disabled={isUploading}
               className="flex items-center gap-2"
@@ -289,10 +308,10 @@ export default function ProjectEditor() {
                 </>
               )}
             </Button>
-            
+
             {/* Load saved subtitles button */}
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => loadSubtitlesFromDB(projectIdNum)}
               disabled={loading}
               className="gap-2"
@@ -309,7 +328,7 @@ export default function ProjectEditor() {
                 </>
               )}
             </Button>
-            
+
             {/* Save project button */}
             <Button
               onClick={handleSave}
@@ -390,7 +409,7 @@ export default function ProjectEditor() {
             )}
           </main>
         )}
-      </div>
+      </PageLayout>
 
       <input
         ref={fileInputRef}

@@ -1,40 +1,11 @@
-import React from "react";
-import { cn } from "@/lib/utils";
+// Re-export Container as PageContainer for backward compatibility
+// This component is redundant with Container and should be deprecated
 
-interface PageContainerProps {
-  children: React.ReactNode;
-  className?: string;
-  maxWidth?: "xs" | "sm" | "md" | "lg" | "xl" | "full";
-  centered?: boolean;
-  padding?: boolean;
+import { Container } from "@/components/ui/container";
+import type { ContainerProps } from "@/components/ui/container";
+
+interface PageContainerProps extends ContainerProps {}
+
+export function PageContainer(props: PageContainerProps) {
+  return <Container {...props} />;
 }
-
-export function PageContainer({
-  children,
-  className,
-  maxWidth = "lg",
-  centered = false,
-  padding = true,
-}: PageContainerProps) {
-  const maxWidthClasses = {
-    xs: "max-w-xs",
-    sm: "max-w-sm",
-    md: "max-w-md",
-    lg: "max-w-lg",
-    xl: "max-w-xl",
-    full: "max-w-full",
-  };
-
-  return (
-    <div
-      className={cn(
-        maxWidthClasses[maxWidth],
-        padding && "px-4 py-6",
-        centered && "mx-auto",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
-} 

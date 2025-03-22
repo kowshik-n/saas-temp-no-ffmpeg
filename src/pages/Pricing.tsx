@@ -1,5 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
+import { PageLayout } from "@/components/layout/PageLayout";
 import {
   Card,
   CardContent,
@@ -82,56 +84,58 @@ export default function Pricing() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Select the perfect plan for your subtitle creation needs
-        </p>
-      </div>
+    <div className="min-h-screen bg-background py-16">
+      <PageLayout containerSize="2xl">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Select the perfect plan for your subtitle creation needs
+          </p>
+        </div>
 
-      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-        {availablePlans.map((plan) => (
-          <Card
-            key={plan.id}
-            className={`${plan.id === "pro-monthly" ? "border-orange-500 shadow-lg" : ""}`}
-          >
-            <CardHeader>
-              <CardTitle className="text-2xl">{plan.name}</CardTitle>
-              <CardDescription>{plan.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4">
-                <span className="text-3xl font-bold">${plan.price}</span>
-                {plan.price > 0 && (
-                  <span className="text-gray-500">/month</span>
-                )}
-              </div>
-              <ul className="space-y-2">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Button
-                onClick={() => handlePlanSelect(plan.id)}
-                className={`w-full ${plan.id === "pro-monthly" ? "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white" : ""}`}
-                variant={plan.id === "free" ? "outline" : "default"}
-              >
-                {plan.isActive
-                  ? "Current Plan"
-                  : plan.id === "free"
-                    ? "Downgrade"
-                    : "Upgrade"}
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {availablePlans.map((plan) => (
+            <Card
+              key={plan.id}
+              className={`${plan.id === "pro-monthly" ? "border-orange-500 shadow-lg" : ""}`}
+            >
+              <CardHeader>
+                <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                <CardDescription>{plan.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <span className="text-3xl font-bold">${plan.price}</span>
+                  {plan.price > 0 && (
+                    <span className="text-gray-500">/month</span>
+                  )}
+                </div>
+                <ul className="space-y-2">
+                  {plan.features.map((feature, index) => (
+                    <li key={index} className="flex items-start">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  onClick={() => handlePlanSelect(plan.id)}
+                  className={`w-full ${plan.id === "pro-monthly" ? "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white" : ""}`}
+                  variant={plan.id === "free" ? "outline" : "default"}
+                >
+                  {plan.isActive
+                    ? "Current Plan"
+                    : plan.id === "free"
+                      ? "Downgrade"
+                      : "Upgrade"}
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      </PageLayout>
     </div>
   );
 }

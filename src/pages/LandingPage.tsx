@@ -2,6 +2,8 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { Container } from "@/components/ui/container";
+import { PageLayout } from "@/components/layout/PageLayout";
 import {
   FileVideo,
   CheckCircle,
@@ -19,7 +21,10 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <Container
+          size="2xl"
+          className="h-16 flex items-center justify-between px-4 py-0"
+        >
           <div className="flex items-center space-x-2">
             <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-2 rounded-lg">
               <FileVideo className="h-5 w-5 text-white" />
@@ -50,12 +55,12 @@ export default function LandingPage() {
               </>
             )}
           </div>
-        </div>
+        </Container>
       </header>
 
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-b from-white to-orange-50">
-        <div className="container mx-auto px-4 text-center">
+        <Container size="2xl" className="text-center">
           <div className="max-w-3xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
               <span className="bg-gradient-to-r from-orange-600 to-amber-600 text-transparent bg-clip-text">
@@ -85,12 +90,12 @@ export default function LandingPage() {
               )}
             </div>
           </div>
-        </div>
+        </Container>
       </section>
 
       {/* How It Works Section */}
       <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
+        <Container size="2xl">
           <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -127,12 +132,12 @@ export default function LandingPage() {
               </p>
             </div>
           </div>
-        </div>
+        </Container>
       </section>
 
       {/* Features Section */}
       <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <Container size="2xl">
           <h2 className="text-3xl font-bold text-center mb-12">Key Features</h2>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -222,12 +227,12 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-        </div>
+        </Container>
       </section>
 
       {/* CTA Section */}
       <section className="py-16 bg-gradient-to-r from-orange-500 to-amber-500 text-white">
-        <div className="container mx-auto px-4 text-center">
+        <Container size="2xl" className="text-center">
           <h2 className="text-3xl font-bold mb-6">
             Ready to Create Perfect Subtitles?
           </h2>
@@ -243,12 +248,12 @@ export default function LandingPage() {
           >
             {user ? "Go to Dashboard" : "Get Started for Free"}
           </Button>
-        </div>
+        </Container>
       </section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
+        <Container size="2xl">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
               <div className="flex items-center">
@@ -326,7 +331,7 @@ export default function LandingPage() {
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
             <p>© 2023 CaptionCraft. All rights reserved.</p>
           </div>
-        </div>
+        </Container>
       </footer>
     </div>
   );
