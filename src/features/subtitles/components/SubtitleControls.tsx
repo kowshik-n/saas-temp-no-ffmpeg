@@ -4,7 +4,6 @@ import {
   Upload,
   RefreshCw,
   Scissors,
-  Search,
 } from "lucide-react";
 import { ShortcutsHelp } from "./ShortcutsHelp";
 import { UndoRedoButtons } from "./UndoRedoButtons";
@@ -32,10 +31,6 @@ interface SubtitleControlsProps {
   onRedo: () => void;
   canUndo: boolean;
   canRedo: boolean;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  filteredCount?: number;
-  totalCount?: number;
 }
 
 export function SubtitleControls({
@@ -52,10 +47,6 @@ export function SubtitleControls({
   onRedo,
   canUndo,
   canRedo,
-  searchQuery,
-  setSearchQuery,
-  filteredCount,
-  totalCount,
 }: SubtitleControlsProps) {
   // Handle SRT import button click
   const handleImportSRTClick = (e: React.MouseEvent) => {
@@ -142,26 +133,6 @@ export function SubtitleControls({
           </div>
         )}
       </div>
-
-      {subtitles.length > 0 && (
-        <div className="mt-4 relative">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search subtitles..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent pl-10 pr-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            />
-            {searchQuery && filteredCount !== undefined && totalCount !== undefined && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
-                {filteredCount} of {totalCount}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 } 

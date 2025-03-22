@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from "react";
-import { Clock, Plus, GitMerge, Scissors, Trash2 } from "lucide-react";
+import React, { useRef, useEffect, useState } from "react";
+import { Clock, Plus, GitMerge, Scissors, Trash2, Search } from "lucide-react";
 import { type Subtitle } from "../types";
 import { getWordCount } from "../utils";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 
 interface SubtitleListProps {
   subtitles: Subtitle[];
-  filteredSubtitles: Subtitle[];
   currentSubtitleId: number | null;
   isPro: boolean;
   onJumpToTimestamp: (timestamp: string) => void;
@@ -22,7 +21,6 @@ interface SubtitleListProps {
 
 export function SubtitleList({
   subtitles,
-  filteredSubtitles,
   currentSubtitleId,
   isPro,
   onJumpToTimestamp,
@@ -33,6 +31,20 @@ export function SubtitleList({
   onDeleteSubtitle,
 }: SubtitleListProps) {
   const subtitleContainerRef = useRef<HTMLDivElement>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredSubtitles, setFilteredSubtitles] = useState<Subtitle[]>(subtitles);
+
+  // Filter subtitles based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredSubtitles(subtitles);
+    } else {
+      const filtered = subtitles.filter((subtitle) =>
+        subtitle.text.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredSubtitles(filtered);
+    }
+  }, [searchQuery, subtitles]);
 
   // Scroll to current subtitle
   useEffect(() => {
@@ -67,119 +79,141 @@ export function SubtitleList({
   };
 
   return (
-    <ScrollArea className="flex-1 p-4" ref={subtitleContainerRef}>
-      <div className="space-y-4">
-        {filteredSubtitles.map((subtitle) => (
-          <Card
-            id={`subtitle-${subtitle.id}`}
-            key={subtitle.id}
-            className={cn(
-              "p-4 transition-all duration-200 hover:shadow-md cursor-pointer",
-              currentSubtitleId === subtitle.id && "ring-2 ring-primary"
+    <div className="flex flex-col h-full p-4">
+      {subtitles.length > 0 && (
+        <div className="mb-4 relative">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search subtitles..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex h-9 w-full rounded-md border border-input bg-transparent pl-10 pr-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            />
+            {searchQuery && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
+                {filteredSubtitles.length} of {subtitles.length}
+              </div>
             )}
-            onClick={() => {
-              onJumpToTimestamp(subtitle.startTime);
-            }}
-          >
-            <div className="flex flex-col space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 flex-1">
-                  <span className="text-sm font-medium">In</span>
-                  <input
-                    type="text"
-                    value={subtitle.startTime}
-                    onChange={(e) =>
-                      onUpdateSubtitle(
-                        subtitle.id,
-                        "startTime",
-                        e.target.value
-                      )
-                    }
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                  <span className="text-sm font-medium">Out</span>
-                  <input
-                    type="text"
-                    value={subtitle.endTime}
-                    onChange={(e) =>
-                      onUpdateSubtitle(subtitle.id, "endTime", e.target.value)
-                    }
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  />
+          </div>
+        </div>
+      )}
+      
+      <ScrollArea className="flex-1" ref={subtitleContainerRef}>
+        <div className="space-y-4">
+          {filteredSubtitles.map((subtitle) => (
+            <Card
+              id={`subtitle-${subtitle.id}`}
+              key={subtitle.id}
+              className={cn(
+                "p-4 transition-all duration-200 hover:shadow-md cursor-pointer",
+                currentSubtitleId === subtitle.id && "ring-2 ring-primary"
+              )}
+              onClick={() => {
+                onJumpToTimestamp(subtitle.startTime);
+              }}
+            >
+              <div className="flex flex-col space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className="text-sm font-medium">In</span>
+                    <input
+                      type="text"
+                      value={subtitle.startTime}
+                      onChange={(e) =>
+                        onUpdateSubtitle(
+                          subtitle.id,
+                          "startTime",
+                          e.target.value
+                        )
+                      }
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                    <span className="text-sm font-medium">Out</span>
+                    <input
+                      type="text"
+                      value={subtitle.endTime}
+                      onChange={(e) =>
+                        onUpdateSubtitle(subtitle.id, "endTime", e.target.value)
+                      }
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="text-muted-foreground h-4 w-4" />
+                    <span className="text-sm text-muted-foreground">
+                      {subtitle.endTime}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="text-muted-foreground h-4 w-4" />
-                  <span className="text-sm text-muted-foreground">
-                    {subtitle.endTime}
-                  </span>
+
+                <textarea
+                  value={subtitle.text}
+                  onChange={(e) =>
+                    onUpdateSubtitle(subtitle.id, "text", e.target.value)
+                  }
+                  className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                  rows={2}
+                />
+
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAddSubtitle(subtitle.id);
+                    }}
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMergeSubtitle(subtitle.id);
+                    }}
+                    className="gap-2"
+                    disabled={!isPro}
+                  >
+                    <GitMerge className="h-4 w-4" />
+                    Merge
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSplitSubtitle(subtitle.id);
+                    }}
+                    disabled={!canSplitSubtitle(subtitle.text) || !isPro}
+                    className="gap-2"
+                  >
+                    <Scissors className="h-4 w-4" />
+                    Split
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteSubtitle(subtitle.id);
+                    }}
+                    className="gap-2 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
                 </div>
               </div>
-
-              <textarea
-                value={subtitle.text}
-                onChange={(e) =>
-                  onUpdateSubtitle(subtitle.id, "text", e.target.value)
-                }
-                className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                rows={2}
-              />
-
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onAddSubtitle(subtitle.id);
-                  }}
-                  className="gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onMergeSubtitle(subtitle.id);
-                  }}
-                  className="gap-2"
-                  disabled={!isPro}
-                >
-                  <GitMerge className="h-4 w-4" />
-                  Merge
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSplitSubtitle(subtitle.id);
-                  }}
-                  disabled={!canSplitSubtitle(subtitle.text) || !isPro}
-                  className="gap-2"
-                >
-                  <Scissors className="h-4 w-4" />
-                  Split
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteSubtitle(subtitle.id);
-                  }}
-                  className="gap-2 text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </Button>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-    </ScrollArea>
+            </Card>
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
   );
 } 

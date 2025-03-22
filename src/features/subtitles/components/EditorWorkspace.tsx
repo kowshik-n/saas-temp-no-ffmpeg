@@ -93,7 +93,7 @@ export function EditorWorkspace({
           minSize={40}
           className="transition-all duration-200 ease-in-out"
         >
-          <div className="h-full flex items-center justify-center bg-gradient-to-b from-background to-muted/20 p-6">
+          <div className="h-full flex items-center justify-center bg-gradient-to-b from-background to-muted/20 ">
             <div
               className={`video-wrapper ${isPortrait ? "portrait" : ""} w-full max-w-4xl shadow-2xl rounded-lg overflow-hidden border border-border/50 transition-all duration-300`}
             >
