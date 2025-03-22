@@ -21,6 +21,7 @@ interface EditorWorkspaceProps {
   fileInputRef: React.RefObject<HTMLInputElement>;
   srtInputRef: React.RefObject<HTMLInputElement>;
   videoRef: React.RefObject<HTMLVideoElement>;
+  subtitleContainerRef: React.RefObject<HTMLDivElement>;
 
   onTimeUpdate: (time: number) => void;
   onImportSRT: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -85,30 +86,30 @@ export function EditorWorkspace({
   };
 
   return (
-    <div className="rounded-xl overflow-hidden border bg-card shadow-lg">
-      <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel defaultSize={70} minSize={50}>
-          <div className="">
-            <div className="h-full flex">
-              <div className="flex-1 flex items-center justify-center bg-gradient-to-b from-background to-muted/20">
-                <div
-                  className={`video-wrapper ${isPortrait ? "portrait" : ""} shadow-2xl rounded-lg overflow-hidden border border-border/50`}
-                >
-                  <VideoPlayer
-                    videoUrl={videoUrl}
-                    subtitles={subtitles}
-                    currentTime={currentTime}
-                    onTimeUpdate={onTimeUpdate}
-                    videoRef={videoRef}
-                  />
-                </div>
-              </div>
+    <div className="rounded-xl overflow-hidden border bg-card shadow-xl">
+      <ResizablePanelGroup direction="horizontal" className="min-h-[calc(100vh-16rem)]">
+        <ResizablePanel 
+          defaultSize={65} 
+          minSize={40}
+          className="transition-all duration-200 ease-in-out"
+        >
+          <div className="h-full flex items-center justify-center bg-gradient-to-b from-background to-muted/20 p-6">
+            <div
+              className={`video-wrapper ${isPortrait ? "portrait" : ""} w-full max-w-4xl shadow-2xl rounded-lg overflow-hidden border border-border/50 transition-all duration-300`}
+            >
+              <VideoPlayer
+                videoUrl={videoUrl}
+                subtitles={subtitles}
+                currentTime={currentTime}
+                onTimeUpdate={onTimeUpdate}
+                videoRef={videoRef}
+              />
             </div>
           </div>
         </ResizablePanel>
         <ResizableHandle withHandle className="bg-border/50" />
         <ResizablePanel defaultSize={30} minSize={25}>
-          <div className="h-[calc(100vh-8rem)] bg-gradient-to-b from-background to-muted/10">
+          <div className="h-[calc(100vh-4rem)] bg-gradient-to-b from-background to-muted/10">
             <Suspense
               fallback={
                 <div className="flex items-center justify-center h-full">
@@ -124,24 +125,13 @@ export function EditorWorkspace({
               <SubtitleEditor
                 subtitles={subtitles}
                 currentSubtitleId={currentSubtitleId}
-                onImportSRT={onImportSRT}
                 onUpdateSubtitle={onUpdateSubtitle}
                 onAddSubtitle={onAddSubtitle}
                 onSplitSubtitle={onSplitSubtitle}
                 onMergeSubtitle={onMergeSubtitle}
-                onSplitAllSubtitles={onSplitAllSubtitles}
                 onDeleteSubtitle={onDeleteSubtitle}
-                onDownloadSRT={onDownloadSRT}
-                onReset={onReset}
-                wordsPerSubtitle={wordsPerSubtitle}
-                setWordsPerSubtitle={setWordsPerSubtitle}
-                fileInputRef={srtInputRef}
                 isPro={isPro}
                 onJumpToTimestamp={handleJumpToTimestamp}
-                onUndo={onUndo}
-                onRedo={onRedo}
-                canUndo={canUndo}
-                canRedo={canRedo}
               />
             </Suspense>
           </div>

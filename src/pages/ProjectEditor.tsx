@@ -4,6 +4,7 @@ import { useProtectedRoute } from "@/hooks/useProtectedRoute";
 import {
   EditorWorkspace,
   ProjectStats,
+  SubtitleControls,
   useVideoUpload,
   useSubtitles,
   useSubtitleSync,
@@ -11,7 +12,7 @@ import {
 import { useKeyboardShortcuts } from "@/features/subtitles/hooks/useKeyboardShortcuts";
 import { usePro } from "@/context/ProContext";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save, Upload, Loader2, Database } from "lucide-react";
+import { ArrowLeft, Save, Upload, Loader2, Database, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   getProject,
@@ -20,13 +21,14 @@ import {
 } from "@/services/projectService";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
 import { msToTime, timeToMs } from "@/features/subtitles/utils";
+import { Switch } from "@/components/ui/switch";
 
 export default function ProjectEditor() {
   const { projectId } = useParams<{ projectId: string }>();
   const { user } = useProtectedRoute();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isPro } = usePro();
+  const { isPro, setIsPro } = usePro();
   const { handleError } = useErrorHandler();
 
   const [project, setProject] = useState<any>(null);
@@ -85,6 +87,22 @@ export default function ProjectEditor() {
 
   // Make sure we have a separate ref for SRT imports
   const srtInputRef = useRef<HTMLInputElement>(null);
+
+  // Add state for search functionality
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredSubtitles, setFilteredSubtitles] = useState<any[]>([]);
+  
+  // Filter subtitles based on search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredSubtitles(subtitles);
+    } else {
+      const filtered = subtitles.filter((subtitle) =>
+        subtitle.text.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredSubtitles(filtered);
+    }
+  }, [searchQuery, subtitles]);
 
   // Load project data
   useEffect(() => {
@@ -261,6 +279,15 @@ export default function ProjectEditor() {
     }
   }, [projectIdNum, loading, project, loadSubtitlesFromDB, resetHistory, toast]);
 
+  // Toggle Pro mode for testing
+  const toggleProMode = () => {
+    setIsPro(!isPro);
+    toast({
+      title: isPro ? "Pro mode disabled" : "Pro mode enabled",
+      description: isPro ? "Switched to free tier" : "Switched to Pro tier for testing",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-4">
@@ -269,65 +296,74 @@ export default function ProjectEditor() {
             <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
           </Button>
           
-          <div className="flex gap-2">
-            {/* Video upload button */}
-            <Button 
-              variant="outline" 
-              onClick={handleVideoReupload}
-              disabled={isUploading}
-              className="flex items-center gap-2"
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Uploading...</span>
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4" />
-                  <span>Change Video</span>
-                </>
-              )}
-            </Button>
+          <div className="flex items-center gap-4">
+            {/* Pro mode toggle for testing */}
+            <div className="flex items-center gap-2">
+              <Crown className={`h-4 w-4 ${isPro ? "text-yellow-500" : "text-muted-foreground"}`} />
+              <span className="text-sm font-medium">Pro Mode</span>
+              <Switch checked={isPro} onCheckedChange={toggleProMode} />
+            </div>
             
-            {/* Load saved subtitles button */}
-            <Button 
-              variant="outline" 
-              onClick={() => loadSubtitlesFromDB(projectIdNum)}
-              disabled={loading}
-              className="gap-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Loading...</span>
-                </>
-              ) : (
-                <>
-                  <Database className="h-4 w-4" />
-                  <span>Load Saved Subtitles</span>
-                </>
-              )}
-            </Button>
-            
-            {/* Save project button */}
-            <Button
-              onClick={handleSave}
-              disabled={saving || isSyncing}
-              className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
-            >
-              {saving || isSyncing ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  <span>Save Project</span>
-                </>
-              )}
-            </Button>
+            <div className="flex gap-2">
+              {/* Video upload button */}
+              <Button 
+                variant="outline" 
+                onClick={handleVideoReupload}
+                disabled={isUploading}
+                className="flex items-center gap-2"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4" />
+                    <span>Change Video</span>
+                  </>
+                )}
+              </Button>
+              
+              {/* Load saved subtitles button */}
+              <Button 
+                variant="outline" 
+                onClick={() => loadSubtitlesFromDB(projectIdNum)}
+                disabled={loading}
+                className="gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Loading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Database className="h-4 w-4" />
+                    <span>Load Saved Subtitles</span>
+                  </>
+                )}
+              </Button>
+              
+              {/* Save button */}
+              <Button 
+                onClick={handleSave}
+                disabled={saving || subtitles.length === 0}
+                className="gap-2"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    <span>Save</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -359,9 +395,33 @@ export default function ProjectEditor() {
             ) : (
               <>
                 {subtitles.length > 0 && <ProjectStats subtitles={subtitles} />}
+                
+                {/* Add SubtitleControls component here */}
+                {videoUrl && (
+                  <SubtitleControls
+                    subtitles={subtitles}
+                    onImportSRT={handleImportSRT}
+                    onReset={handleReset}
+                    onDownloadSRT={downloadSRT}
+                    onSplitAllSubtitles={handleSplitAllSubtitles}
+                    wordsPerSubtitle={wordsPerSubtitle}
+                    setWordsPerSubtitle={setWordsPerSubtitle}
+                    fileInputRef={srtInputRef}
+                    isPro={isPro}
+                    onUndo={undo}
+                    onRedo={redo}
+                    canUndo={canUndo}
+                    canRedo={canRedo}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    filteredCount={filteredSubtitles.length}
+                    totalCount={subtitles.length}
+                  />
+                )}
+                
                 <EditorWorkspace
                   videoUrl={videoUrl}
-                  subtitles={subtitles}
+                  subtitles={filteredSubtitles.length > 0 ? filteredSubtitles : subtitles}
                   currentTime={currentTime}
                   currentSubtitleId={currentSubtitleId}
                   isPortrait={isPortrait}
